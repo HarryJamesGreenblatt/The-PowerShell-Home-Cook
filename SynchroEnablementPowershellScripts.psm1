@@ -233,7 +233,7 @@ function Update-HealthAndStatus {
 
         param (
                 
-                [Parameter(ValueFromPipeline=$true)]
+                [Parameter(Mandatory=$true)]
                 [string]
                 $MostRecentlyModified,
         
