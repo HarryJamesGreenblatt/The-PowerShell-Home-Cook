@@ -1,6 +1,7 @@
 Function Get-HealthAndStatus {
 
         [CmdletBinding()]
+        
         param (
 
                 [Parameter(Mandatory=$true)]
