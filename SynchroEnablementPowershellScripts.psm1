@@ -27,7 +27,7 @@ Function Get-HealthAndStatus {
 
                         LogList = Get-WinEvent -ListLog * | 
                                                 Where-Object RecordCount -gt 0 | 
-                                                         Sort-Object recordcount -Descending  
+                                                         Sort-Object RecordCount -Descending  
                 }
                     
         }
