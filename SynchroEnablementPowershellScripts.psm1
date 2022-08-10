@@ -215,10 +215,10 @@ function Compare-LastWriteTimes {
 
                         }
 
+                Exit-PSSession  
         }
                 
         end {           
-                Exit-PSSession  
         }
 
 }
@@ -280,10 +280,10 @@ function Update-HealthAndStatus {
                                 $ActivityHealthAndStatus | Out-File $PathToActivityFile -Append
                         }
 
+                Exit-PSSession
         }
         
         end {
-                Exit-PSSession
         }
 }
 Export-ModuleMember -Function Update-HealthAndStatus
