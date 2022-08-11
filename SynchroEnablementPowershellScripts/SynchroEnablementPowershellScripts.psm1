@@ -426,7 +426,7 @@ function Compare-LastWriteTimes {
         }
                 
         end {           
-                Write-Verbose "The Most Recently Modified File is:  $MostRecentlyModified$"
+                Write-Verbose "The Most Recently Modified File is:  $MostRecentlyModified."
         }
 
 }
@@ -438,16 +438,56 @@ Export-ModuleMember -Function Compare-LastWriteTimes
 function Update-HealthAndStatus {
 <#
 .SYNOPSIS
-        A short one-line action-based description, e.g. 'Tests if a function is valid'
+        Initiates a remote session between endpoints, and returns a Status Message describing the Health and Status
+        of a specified system of intereest which is then Written to the Transfer Directory as a System Activity Report 
+        used to Update the existing collection Health and Status Reports already present there.
+        
 .DESCRIPTION
-        A longer description of the function, its purpose, common use cases, etc.
-.NOTES
-        Information or caveats about the function e.g. 'This function is not supported in Linux'
-.LINK
-        Specify a URI to a help page, this will show when Get-Help -Online is used.
+        Generates a Status Message describing the current state of Activity within a System based on
+        a given input source revealing the Most Recently Modified betweem the Files in the Transfer Directory,
+        and an "Activity Probe" File produced autmotically by the System that indicates operational health and status.
+        
+        If it is determined that the Transfer Directory Files were the Most Recently Modified of the two, then the Message
+        generated is:
+
+                "As of $(Get-Date), there has been NO additional activity observed."
+
+        Otherwise, it's the Activity Probe which was determined to be the Most Recently Modified, so the Message
+        generated is:
+
+                "Recent System Activity observed on $(Get-Date)"
+
+        After the Message is generated, it is written to a new "System Activity" Health and Status file in the Transfer Directory
+        if one does not already exist, or is simply Appended to an existing one, should one be found. 
+
+.PARAMETER MostRecentlyModified
+        A string indicating whether it was the Activity Probe File or one of those the Transfer Directory which has been  
+        Modified Most Recently.
+
+.PARAMETER UserName
+        The Client's User Account Name belonging to the User who may authenticate to the Server.
+
+.PARAMETER HostName
+        The "Computer Name" assigned to the Server.
+
+.PARAMETER PathToTransferDirectory
+        The Path to a File Transfer Directory located on the Server. 
+
+.PARAMETER PathToFileDemonstratingSystemActivity
+        The Path to some arbtrary file located on the Server determined to demonstrate indications of verifiable system activty, 
+        applicable to both internal and external systems respectively.
+
 .EXAMPLE
-        Test-MyTestFunction -Verbose
-        Explanation of the function or its result. You can include multiple examples with additional .EXAMPLE lines
+        $params = @{
+                UserName = My_Name;
+                HostName = Server_Name;
+                PathToTransferDirectory= Path\to\directory
+                PathToFileDemonstratingSystemActivity = Path\to\file
+        }
+        
+        $params.Add( MostRecentlyModified, (Compare-LastWriteTimes @params) )
+
+        Update-HealthAndStatus @params
 #>
 
         [CmdletBinding()]
@@ -477,7 +517,20 @@ function Update-HealthAndStatus {
         )
         
         begin {
+
+                Write-Verbose ("The most recently modified between the Transfer Directory Files and the File " + 
+                "Demonstrating System Activity:  $MostRecentlyModified.")
+
+                Write-Verbose "The path to the Server's Transfer Directory is:  $PathToTransferDirectory."
+                Write-Verbose "The path to the File Demonstrting System Activity is:  $PathToFileDemonstratingSystemActivity."
+
+
+                Write-Verbose "Initiating Session over SSH to  $UserName@$HostName."
+
                 $Session = New-PSSession -UserName $UserName -HostName $HostName 
+
+
+                Write-Verbose "Generating a Message describing the Health and Status of the File Demonstrating System Activity"
 
                 $ActivityHealthAndStatus = 
                 
@@ -491,6 +544,9 @@ function Update-HealthAndStatus {
         
         process {
                 
+                Write-Verbose ("Invoking a Command to Append the Generated System Activity Health and Status message" +
+                "to the other Health and Status Reports currently residing within the Transfer Directory.")
+
                 Invoke-Command `
                         -Session $Session `
                         -ArgumentList $PathToTransferDirectory, $ActivityHealthAndStatus `
@@ -505,6 +561,7 @@ function Update-HealthAndStatus {
         }
         
         end {
+                Write-Verbose "The Update to Health and Status has now been written to the Transfer Directory."
         }
 }
 Export-ModuleMember -Function Update-HealthAndStatus
