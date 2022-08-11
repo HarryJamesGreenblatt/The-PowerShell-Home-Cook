@@ -5,7 +5,7 @@ function Get-HealthAndStatus {
         and log data belonging to both into a Custom Object.
 
 .DESCRIPTION
-        A Client will have it's System Information, derived from the  Get-ComputerInfo Cmdlet, packaged into a
+        The Client will have it's System Information, derived from the  Get-ComputerInfo Cmdlet, packaged into a
         Hash Table called ClientHealthAndStatus, along with a List summarizing all of its Active Event Logs. 
         The ClientHealthAndStatus will then be passed as an input to a PowerShell Remoting session concuted between
         the Client and the Server over SSH. 
@@ -33,13 +33,19 @@ function Get-HealthAndStatus {
         (See Examples)
 
 .EXAMPLE
+        Get-HealthAndStatus `
+                UserName = My_Name `
+                HostName = Server_Name `
+                PathToTransferDirectory = Path\to\directory
+
+.EXAMPLE
         $params = @{
                 UserName = My_Name;
                 HostName = Server_Name;
                 PathToTransferDirectory= Path\to\directory
         }
 
-        Get-HealthAndStatus @params
+        Get-HealthAndStatus @params -Verbose
 
 .EXAMPLE
         $params = @{
@@ -70,8 +76,14 @@ function Get-HealthAndStatus {
         
         begin {
 
+                Write-Verbose "The path to the Server's Transfer Directory is:  $PathToTransferDirectory."
+                Write-Verbose "Initiating Session over SSH to  $UserName@$HostName."
+                
                 $Session = New-PSSession -UserName $UserName -HostName $HostName
 
+
+                Write-Verbose "Packaging Client's System Information and Log Data into a Health and Status Hash Table."
+                
                 $ClientHealthAndStatus = @{
 
                         SystemInfo = Get-ComputerInfo;
@@ -80,11 +92,15 @@ function Get-HealthAndStatus {
                                                 Where-Object RecordCount -gt 0 | 
                                                                 Sort-Object RecordCount -Descending  
                 }
+                
+                Write-Verbose "The Client's Health and Status is now stored in a:`n  $ClientHealthAndStatus."
                         
         }
         
 
         process {
+                
+                Write-Verbose "Invoking a Command to the Server to package it's System Information and Log Data into a seperate Hash Table."
                 
                 Invoke-Command `
                         -Session $Session `
@@ -107,11 +123,15 @@ function Get-HealthAndStatus {
         
         end {
 
+                Write-Verbose "Returning from the remoting session, the Server's Health and Status is now held in a:`n  $ServerHealthAndStatus."
+                Write-Verbose "Packaging both the Client and Server Health and Status Hashes into a Custom PSObject."
+                
                 [PSCustomObject]@{
                         Client = $ClientHealthAndStatus;
                         Server = $ServerHealthAndStatus
                 }
                 
+                Write-Verbose "The Health and Status Custom PSObject is now available."
         }
 }
 Export-ModuleMember -Function Get-HealthAndStatus                     
@@ -123,16 +143,63 @@ Export-ModuleMember -Function Get-HealthAndStatus
 function Write-ToTransferDirectory {
 <#
 .SYNOPSIS
-        A short one-line action-based description, e.g. 'Tests if a function is valid'
+        Initiates a remote session between endpoints, unpackages a Custom PSObject into a specified directory 
+        designated as a staging area to facilitate data transfer, and modifies the unpacked data to remove undesirable 
+        non-printing characters.
+
 .DESCRIPTION
-        A longer description of the function, its purpose, common use cases, etc.
+        The Client will initiate a remoting session with the Server and check for the existence of a specified Transfer Directory.
+        If it doesn't exist, one will be created.
+
+        Following that, the contents of the $HealthAndStatus input, whether passed in as Pipeline Input, or as 
+        a Parameter Value, are unpacakged and written as files respective to the System Information and Log Lists included  
+        with the Client and Server Health and Status Hash Tables that are returned from Get-HealthAndStatus.
+        
+        However, given that PowerShell 7 unfortantely includes ANSI Color Codes in its File Representation of it's Objects,
+        Additional measures are taken to Remove these ANSI Color Codes using a REGEX Subsitution via  -replace  '',''.
+
+.PARAMETER HealthAndStatus,
+        A Custom PSObject containing Hash Tables corresponding to the Client's and Server's Health and Status Data, respectively.
+
+.PARAMETER UserName
+        The Client's User Account Name belonging to the User who may authenticate to the Server.
+
+.PARAMETER HostName
+        The "Computer Name" assigned to the Server.
+
+.PARAMETER PathToTransferDirectory
+        The Path to a File Transfer Directory located on the Server. 
+
+.PARAMETER ANSIColorCodes
+        The Regular Expression matching the ANSI Color Code jusnk characters included by default in PowerShell 7 output. 
+
 .NOTES
-        Information or caveats about the function e.g. 'This function is not supported in Linux'
-.LINK
-        Specify a URI to a help page, this will show when Get-Help -Online is used.
+        Get-HealthAndStatus is used concurrently with this function.
+        (See Examples)
+
 .EXAMPLE
-        Test-MyTestFunction -Verbose
-        Explanation of the function or its result. You can include multiple examples with additional .EXAMPLE lines
+        Write-ToTransferDirectory `
+                UserName = My_Name `
+                HostName = Server_Name `
+                PathToTransferDirectory = Path\to\directory
+
+.EXAMPLE
+        $params = @{
+                UserName = My_Name;
+                HostName = Server_Name;
+                PathToTransferDirectory= Path\to\directory
+        }
+
+        Write-ToTransferDirectory @params -Verbose
+
+.EXAMPLE
+        $params = @{
+                UserName = My_Name;
+                HostName = Server_Name;
+                PathToTransferDirectory= Path\to\directory
+        }
+
+        Get-HealthAndStatus @params | Write-ToTransferDirectory @params
 #>
         [CmdletBinding()]
         
@@ -160,8 +227,14 @@ function Write-ToTransferDirectory {
         
         begin {
 
+                Write-Verbose "The path to the Server's Transfer Directory is:  $PathToTransferDirectory."
+                Write-Verbose "Initiating Session over SSH to  $UserName@$HostName."
+                
                 $Session = New-PSSession -UserName $UserName -HostName $HostName
 
+
+                Write-Verbose "Setting up an array of File Names to facilitate File Write operations."
+                
                 $Deliverables = @(
                         "Client Info",
                         "Client Logs",
@@ -172,6 +245,9 @@ function Write-ToTransferDirectory {
         
         process {
 
+                Write-Verbose ("Invoking a Command to the Server to unpackage it's Health and Status Object " +
+                "into Files stored in the specified Transfer Directory.")
+                
                 Invoke-Command `
                         -Session $Session `
                         -ArgumentList $HealthAndStatus,$Deliverables,$PathToTransferDirectory,$ANSIColorCodes `
@@ -184,18 +260,24 @@ function Write-ToTransferDirectory {
                                         $ANSIColorCodes
                                 )
 
-
+                                
+                                Write-Verbose "Checking If a Transfer Directory exists."
+                                
                                 If( -not (Test-Path $PathToTransferDirectory) ){
                                         New-Item -ItemType Directory $PathToTransferDirectory
                                 }
 
 
+                                Write-Verbose "Unpackaging the Health and Status Object into individual Transfer Files."
+                                
                                 $HealthAndStatus.Client.SystemInfo | Out-File "$PathToTransferDirectory\Client Info" -Encoding ASCII
                                 $HealthAndStatus.Client.LogList    | Out-File "$PathToTransferDirectory\Client Logs" -Encoding ASCII
                                 $HealthAndStatus.Server.SystemInfo | Out-File "$PathToTransferDirectory\Server Info" -Encoding ASCII
                                 $HealthAndStatus.Server.LogList    | Out-File "$PathToTransferDirectory\Server Logs" -Encoding ASCII
 
 
+                                Write-Verbose "Modifying all Transfer Files to remove the uunwanted ANSI Color Codes."
+                                
                                 $Deliverables | ForEach-Object -Process {
 
                                         (Get-Content "$PathToTransferDirectory\$_")  `
@@ -206,13 +288,12 @@ function Write-ToTransferDirectory {
 
                         }
 
-                        
                 Exit-PSSession
 
         }
         
         end {
-                
+                Write-Verbose "The Health and Status Custom PSObject Has now beem fully unpacked into the Transfer Directory."    
         }
 
 }
