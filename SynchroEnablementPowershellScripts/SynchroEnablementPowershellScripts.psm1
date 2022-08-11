@@ -186,6 +186,7 @@ function Write-ToTransferDirectory {
 
 .EXAMPLE
         $params = @{
+                HealthAndStatus = Get-HealthAndStatus @params
                 UserName = My_Name;
                 HostName = Server_Name;
                 PathToTransferDirectory= Path\to\directory
