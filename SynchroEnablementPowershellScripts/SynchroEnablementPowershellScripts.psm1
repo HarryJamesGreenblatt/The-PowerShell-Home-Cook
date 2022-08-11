@@ -21,7 +21,6 @@ function Get-HealthAndStatus {
 
 .PARAMETER UserName
         The Client's User Account Name belonging to the User who may authenticate to the Server.
-                i.e.  $HealthAndStatus.Server.SystemInfo   or    $HealthAndStatus.Client.LogList 
 
 .PARAMETER HostName
         The "Computer Name" assigned to the Server.
@@ -79,9 +78,9 @@ function Get-HealthAndStatus {
 
                         LogList = Get-WinEvent -ListLog * | 
                                                 Where-Object RecordCount -gt 0 | 
-                                                         Sort-Object RecordCount -Descending  
+                                                                Sort-Object RecordCount -Descending  
                 }
-                    
+                        
         }
         
 
@@ -91,7 +90,7 @@ function Get-HealthAndStatus {
                         -Session $Session `
                         -OutVariable ServerHealthAndStatus `
                         -ScriptBlock {
-                    
+                        
                                 @{
                                         SystemInfo = Get-ComputerInfo;
                                         
@@ -136,7 +135,7 @@ function Write-ToTransferDirectory {
         Explanation of the function or its result. You can include multiple examples with additional .EXAMPLE lines
 #>
         [CmdletBinding()]
-    
+        
         param (
                 [Parameter(ValueFromPipeline=$true)]
                 [System.Object[]]
@@ -156,7 +155,7 @@ function Write-ToTransferDirectory {
                 
                 [string]
                 $ANSIColorCodes = '\x1B\[([0-9]{1,3}((;[0-9]{1,3})*)?)?[m|K]'           
-    
+        
         )
         
         begin {
@@ -256,7 +255,7 @@ function Compare-LastWriteTimes {
                 [Parameter(Mandatory=$true)]
                 [string]
                 $PathToFileDemonstratingSystemActivity
-      
+        
         )
         
         begin {
@@ -341,7 +340,7 @@ function Update-HealthAndStatus {
                 [Parameter(Mandatory=$true)]
                 [string]
                 $PathToFileDemonstratingSystemActivity
-      
+        
         )
         
         begin {
