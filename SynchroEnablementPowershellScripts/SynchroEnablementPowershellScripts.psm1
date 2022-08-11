@@ -171,7 +171,7 @@ function Write-ToTransferDirectory {
         The Path to a File Transfer Directory located on the Server. 
 
 .PARAMETER ANSIColorCodes
-        The Regular Expression matching the ANSI Color Code jusnk characters included by default in PowerShell 7 output. 
+        The Regular Expression matching the ANSI Color Code junk characters included by default in PowerShell 7 output. 
 
 .NOTES
         Get-HealthAndStatus is used concurrently with this function.
@@ -307,16 +307,56 @@ Export-ModuleMember -Function Write-ToTransferDirectory
 function Compare-LastWriteTimes {
 <#
 .SYNOPSIS
-        A short one-line action-based description, e.g. 'Tests if a function is valid'
+        Initiates a remote session between endpoints, and compares the Last Time any changes were Written into the Server's Transfer Directory
+        with the Last Time any were Written into a File, given by a specified Path, that is meant to represent a System Activity Probe monitoring 
+        system health and status.
+
 .DESCRIPTION
-        A longer description of the function, its purpose, common use cases, etc.
-.NOTES
-        Information or caveats about the function e.g. 'This function is not supported in Linux'
-.LINK
-        Specify a URI to a help page, this will show when Get-Help -Online is used.
+        After checking whether it is either the Transfer Directory Files or the Specfied System Activity Indicator File, we return a string 
+        simply stating which is the  Most Recently Modified File  out of the two comprators.  
+                i.e.   Activity Probe   or   Transfer Directory
+
+.PARAMETER UserName
+        The Client's User Account Name belonging to the User who may authenticate to the Server.
+
+.PARAMETER HostName
+        The "Computer Name" assigned to the Server.
+
+.PARAMETER PathToTransferDirectory
+        The Path to a File Transfer Directory located on the Server. 
+
+.PARAMETER PathToFileDemonstratingSystemActivity
+        The Path to some arbtrary file located on the Server determined to demonstrate indications of verifiable system activty, 
+        applicable to both internal and external systems resoectively.
+
 .EXAMPLE
-        Test-MyTestFunction -Verbose
-        Explanation of the function or its result. You can include multiple examples with additional .EXAMPLE lines
+        Compare-LastWriteTimes `
+                UserName = My_Name `
+                HostName = Server_Name `
+                PathToTransferDirectory = Path\to\directory
+                PathToFileDemonstratingSystemActivity = Path\to\file
+                
+.EXAMPLE
+        $params = @{
+                UserName = My_Name;
+                HostName = Server_Name;
+                PathToTransferDirectory= Path\to\directory
+                PathToFileDemonstratingSystemActivity = Path\to\file
+        }
+
+        Compare-LastWriteTimes @params -Verbose
+
+.EXAMPLE
+        $params = @{
+                UserName = My_Name;
+                HostName = Server_Name;
+                PathToTransferDirectory= Path\to\directory
+                PathToFileDemonstratingSystemActivity = Path\to\file
+        }
+        
+        $params.Add( MostRecentlyModified, (Compare-LastWriteTimes @params) )
+
+        Update-HealthAndStatus @params
 #>
 
         [CmdletBinding()]
@@ -342,11 +382,20 @@ function Compare-LastWriteTimes {
         )
         
         begin {
-                $Session = New-PSSession -UserName $UserName -HostName $HostName                
+
+                Write-Verbose "The path to the Server's Transfer Directory is:  $PathToTransferDirectory."
+                Write-Verbose "Initiating Session over SSH to  $UserName@$HostName."
+
+                $Session = New-PSSession -UserName $UserName -HostName $HostName 
+
         }
         
         process {
-                
+
+                Write-Verbose ("Invoking a Command to Compare the Last Write Times between the Files in the Transfer Directory " +
+                "and the specified File Demonstrating System Activity returning a string naming whichever that was observed to be " +
+                "the Most Recently Modified of the two.")
+
                 Invoke-Command `
                         -Session $Session `
                         -ArgumentList $PathToTransferDirectory,$PathToFileDemonstratingSystemActivity `
@@ -377,6 +426,7 @@ function Compare-LastWriteTimes {
         }
                 
         end {           
+                Write-Verbose "The Most Recently Modified File is:  $MostRecentlyModified$"
         }
 
 }
