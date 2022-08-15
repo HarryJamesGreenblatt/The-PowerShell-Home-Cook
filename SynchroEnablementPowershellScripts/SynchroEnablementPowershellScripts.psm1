@@ -6,7 +6,7 @@ function Get-HealthAndStatus {
 
 .DESCRIPTION
         The Client will have it's System Information, derived from the  Get-ComputerInfo Cmdlet, packaged into a
-        Hash Table called ClientHealthAndStatus, along with a List summarizing all of its Active Event Logs. 
+        Hash Table called ClientHealthAndStatus, along with a List summarizing all of its current Secrity Logs. 
         The ClientHealthAndStatus will then be passed as an input to a PowerShell Remoting session concuted between
         the Client and the Server over SSH. 
         
@@ -82,15 +82,16 @@ function Get-HealthAndStatus {
                 $Session = New-PSSession -UserName $UserName -HostName $HostName
 
 
-                Write-Verbose "Packaging Client's System Information and Log Data into a Health and Status Hash Table."
+                Write-Verbose ("Packaging Client's System Information " +
+                "and Security Log Summary Data into a Health and Status Hash Table.")
                 
                 $ClientHealthAndStatus = @{
 
                         SystemInfo = Get-ComputerInfo;
 
-                        LogList = Get-WinEvent -ListLog * | 
-                                                Where-Object RecordCount -gt 0 | 
-                                                                Sort-Object RecordCount -Descending  
+                        LogList = Get-WinEvent -ListLog Security | 
+                                                        Format-List -Property *  
+                                                                
                 }
                 
                 Write-Verbose "The Client's Health and Status is now stored in a:`n  $ClientHealthAndStatus."
@@ -100,7 +101,8 @@ function Get-HealthAndStatus {
 
         process {
                 
-                Write-Verbose "Invoking a Command to the Server to package it's System Information and Log Data into a seperate Hash Table."
+                Write-Verbose ("Invoking a Command to the Server to package it's System Information" + 
+                " and Security Log Summary Data into a seperate Hash Table.")
                 
                 Invoke-Command `
                         -Session $Session `
@@ -110,9 +112,8 @@ function Get-HealthAndStatus {
                                 @{
                                         SystemInfo = Get-ComputerInfo;
                                         
-                                        LogList = Get-WinEvent -ListLog * | 
-                                                        Where-Object RecordCount -gt 0 | 
-                                                                        Sort-Object recordcount -Descending
+                                        LogList = Get-WinEvent -ListLog Security |
+                                                                        Format-List -Property *                        
                                 }
 
                         }
@@ -544,7 +545,7 @@ function Update-HealthAndStatus {
         
         process {
                 
-                Write-Verbose ("Invoking a Command to Append the Generated System Activity Health and Status message" +
+                Write-Verbose ("Invoking a Command to Append the Generated System Activity Health and Status message " +
                 "to the other Health and Status Reports currently residing within the Transfer Directory.")
 
                 Invoke-Command `
