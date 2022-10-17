@@ -13,7 +13,9 @@ function Search-Internet {
     
     By invoking the Start-Proceess cmndlet both with the speified Browser's Process Name and the constructed Search Queary 
     provided as input parameters, the specified Browser thereby opens itself and executes a Search for the provided Question
-    in the specified Browser using the specified Search Engine.   
+    in the specified Browser using the specified Search Engine.
+    
+    A Web Request for the resulting Search Engine Result may be optionally executed by passing the As_WebRequest Switch.  
 
     .PARAMETER Question
     The Search Term or Search Query to be looked up on the Internet.
@@ -134,9 +136,8 @@ function Search-Internet {
     }
     
     process {
-
-        
-        If( -not ($DontOpenBrowser) ){
+   
+        if( -not ($DontOpenBrowser) ){
 
             Write-Verbose (
                 "Now opening up a Search Query on '$Question' in '$Browser'" +
