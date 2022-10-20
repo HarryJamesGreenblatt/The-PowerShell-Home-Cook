@@ -63,7 +63,7 @@ function Search-Internet {
     (Simply Invokes a Web Request for the Search Engine results without opening the Browser)
 
     .NOTES
-    The code executed on Line 71 is dependent on Node.js
+    The code executed on Line 96 is dependent on Node.js
 
 #>
     [CmdletBinding()]
