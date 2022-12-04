@@ -57,7 +57,7 @@ function Write-Figlet {
 
     
     .EXAMPLE
-    Write-Figlet "Passed via Pipeline" -Font "banner3-D"
+    "Passed via Pipeline" | Write-Figlet -Font "banner3-D"
 
     '########:::::'###:::::'######:::'######::'########:'########::
     ##.... ##:::'## ##:::'##... ##:'##... ##: ##.....:: ##.... ##:
