@@ -9,3 +9,13 @@ Searches the web for the given Query String on an optionally specified Search En
    
 ### `Write-Figlet`   
 Converts a provided string input to generative ASCII Typesetting produced by the python pyfiglet module.
+
+<br>
+<br>
+
+## Scripts
+### `Test-HelloWorldForm.ps1`
+Generates a simple PowerShell GUI with a naively interactive button.
+   
+### `Test-ServiceHealthForm.ps1`
+Generates a PowerShell GUI that implements a Combo Box to list the Health of Services currently running on the machine.
