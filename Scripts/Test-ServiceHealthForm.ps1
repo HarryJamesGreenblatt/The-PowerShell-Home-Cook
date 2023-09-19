@@ -5,17 +5,16 @@ function Test-ServiceHealthForm {
 
 
 
+
     # Instantiate a Form Object
     $FormObject = New-Object System.Windows.Forms.Form
 
     # Instantiate a Label Object
     $LabelObject = New-Object System.Windows.Forms.Label
 
-    # Instantiate a Button Object
-    $ButtonObject = New-Object System.Windows.Forms.Button
-
     # Instantiate a ComboBox Object
     $ComboBoxObject = New-Object System.Windows.Forms.ComboBox
+
 
  
 
@@ -39,65 +38,49 @@ function Test-ServiceHealthForm {
 
 
 
-    # Add the Hello World Text to the Label:
+    # Add the Text Label:
 
     #Instantiate a new Label Object
     $Label = $LabelObject
 
     #Set the Label text to store the Hello Word message
-    $Label.Text = 'Service Health'
+    $Label.Text = 'Service:'
+
+    #Set the font styling for the Label Text
+    $Label.Font = 'helvetica,11'
+
 
     #Autosize to fit the full message into the label
     $Label.AutoSize = $true
 
     #Translate the Label
-    $Label.Location = New-Object System.Drawing.Point( ((500/2) - 100), ((300/2) - 50) )
-
-    #Set the font styling
-    $Label.Font = 'helvetica,24,style=Bold'
+    $Label.Location = New-Object System.Drawing.Point( 20, 22 )
 
 
 
 
-    #instantiate a new Button Object
-    $Button = $ButtonObject
+    # Add the Dropdown:
 
-    #Set the Button's text label
-    $Button.Text = 'Push this button'
+    #Instantiate a new Drop Down Object
+    $DropDown = $ComboBoxObject
 
-    $Button.Font= 'Helvetica,14'
+    #Set the Drop Down's width to 350
+    $DropDown.width = 350
 
-    #Autosize the button to esure proper formatting
-    $Button.Autosize = $true
+    #Set the Drop Down's Placeholder text
+    $DropDown.Text = 'Pick a service'
 
-    #Translate the button underneath the message text
-    $Button.Location =  New-Object System.Drawing.Point(165, 155)
+    #Translate the Drop Down to the upper left of form area
+    $DropDown.Location =  New-Object System.Drawing.Point(100, 20)
 
-    
-
-
-    # Define a Callback Function 
-    function ToggleHello 
-    {
-        if($Label.Text -eq '')
-        {
-            $Label.Text = 'Service Health'
-        }
-        
-        else
-        {
-            $Label.Text = ''
-        }
-    }
-
-    # Assign the Callback Function to the Button's Click event
-    $Button.Add_Click({ToggleHello})
+    # Add all the currently running Services into the Drop Down
+    Get-Service | Foreach-Object {$DropDown.Items.AddRange(@($_.Name))} 
 
 
 
     
     # Add the Controls to the Form:
-    $ServiceHealthForm.Controls.AddRange(@($Label, $Button))
+    $ServiceHealthForm.Controls.AddRange(@($Label, $DropDown))
     
     
     
@@ -111,7 +94,6 @@ function Test-ServiceHealthForm {
     # Clean up resources after completion of the Form:
     $ServiceHealthForm.Dispose()
     
-
 }
 
 Test-ServiceHealthForm
