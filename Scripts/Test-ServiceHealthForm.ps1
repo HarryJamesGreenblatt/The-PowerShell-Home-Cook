@@ -30,10 +30,10 @@ function Test-ServiceHealthForm {
     $ServiceHealthForm.Text = 'Service Health Form'
 
     #Set the background color of the form to goldenrod
-    $ServiceHealthForm.BackColor = 'whitesmoke'
+    $ServiceHealthForm.BackColor = 'darkgoldenrod'
 
     #Set the foreground color of the form to white
-    $ServiceHealthForm.ForeColor = 'black'
+    $ServiceHealthForm.ForeColor = 'white'
 
 
 
@@ -56,10 +56,10 @@ function Test-ServiceHealthForm {
     Get-Service -ErrorAction SilentlyContinue | 
         Foreach-Object {$DropDown.Items.AddRange(@($_.Name))} 
 
-        
+
     # Invoke a callback function corresponding to the DropDown's on change event
     # which occurs when the selected index is changed
-     $DropDown.Add_SelectedIndexChanged({Set-ServiceDetails})
+     $DropDown.Add_SelectedIndexChanged({Get-ServiceDetails})
 
 
 
@@ -67,7 +67,7 @@ function Test-ServiceHealthForm {
     # Define a callback function which retreives the value of the currently selected 
     # DropDown item and then sets the Common Name and Status labels using 
     # data pulled from it's Get-Service object
-    function Set-ServiceDetails
+    function Get-ServiceDetails
     {
         $ServiceName           = $DropDown.SelectedItem
         $Details               = Get-Service $Servicename
