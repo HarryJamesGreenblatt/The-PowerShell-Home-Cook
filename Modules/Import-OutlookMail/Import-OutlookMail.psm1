@@ -316,12 +316,6 @@ function Import-OutlookMail {
 
             $Mailbox.Items
             
-            Write-Verbose "
-            Collected $(($Mailbox.Items).Length) $(
-                ($Mailbox.Items).Length -eq 1 ? "email":  "emails" 
-            ).
-            "
-
         }
 
         else {
