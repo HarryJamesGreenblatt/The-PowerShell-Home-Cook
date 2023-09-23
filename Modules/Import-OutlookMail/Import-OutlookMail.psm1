@@ -3,7 +3,6 @@ function Import-OutlookMail {
     .SYNOPSIS
     Connects to the user's Outlook account and retrieves all mail from the specified mail folder as a powershell object.
 
-
     .DESCRIPTION
     Creates a connection to the logged-in user's microsoft exchange server via instatiation of an
     Outlook.Application Com Object. This Com Object provides an interface known as MAPI that permits 
