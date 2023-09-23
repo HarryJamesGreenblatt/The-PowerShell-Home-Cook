@@ -314,8 +314,6 @@ function Receive-OutlookMailbox {
             belonging to the $SelectedOutlookAccount account. 
             "
 
-            $Date = [datetime] '09/01/2023'
-
             $Mailbox
             
         }
