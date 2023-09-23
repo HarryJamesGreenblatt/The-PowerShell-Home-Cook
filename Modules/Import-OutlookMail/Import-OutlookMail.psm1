@@ -308,7 +308,6 @@ function Import-OutlookMail {
     end {
 
         if( -not $SelectionCanceled ){
-
             
             Write-Verbose "
             Now collecting ALL $SelectedMailFolder messages 
