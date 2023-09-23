@@ -2,13 +2,21 @@
 You know, if PowerShell was a musical instrument, I think it would be a Conductor's Baton  :heavy_minus_sign::ok_hand:
 
 ## Modules
-### [`Search-Internet`   ](./Modules/Search-Internet/Search-Internet.psm1)
+### [`Search-Internet`](./Modules/Search-Internet/Search-Internet.psm1)
 Searches the web for the given Query String on an optionally specified Search Engine and Browser.   
    
 <br>   
    
-### [`Write-Figlet`   ](./Modules/Write-Figlet/Write-Figlet.psm1)
+### [`Write-Figlet`](./Modules/Write-Figlet/Write-Figlet.psm1)
 Converts a provided string input to generative ASCII Typesetting produced by the python pyfiglet module.
+   
+<br>   
+   
+### [`Import-OutlookMail`](./Modules/Import-OutlookMail/Import-OutlookMail.psm1)
+Connects to the user's Outlook account and retrieves all mail from the specified mail folder as a powershell object.
+   
+- #### [`Import-WPFDataFromXAML`](./Modules/Import-OutlookMail/Import-OutlookMail.psm1)
+    Loads a WPF form using the XMAL file at specified file path and creates script-scoped variables which reference all the form's controls by name.   
 
 <br>
 <br>
