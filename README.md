@@ -23,9 +23,14 @@ Connects to the user's Outlook account and retrieves all mail from the specified
 
 ## Scripts
 ### [`Test-HelloWorldForm.ps1`](./Scripts/Test-HelloWorldForm.ps1)
-Generates a simple PowerShell GUI with a naively interactive button.
+Uses Windows Forms to generate a simple button GUI using 100% vanilla powershell
+   
+<br>
+
+### [`Test-HelloWorldXMLForm.ps1`](./Scripts/Test-HelloWorldForm.ps1)
+Loads an externally developed WPF Form saved in XAML format into a simple button GUI whose control logic is handled by PoweerShell.
    
 <br>
 
 ### [`Test-ServiceHealthForm.ps1`](./Scripts/Test-ServiceHealthForm.ps1)
-Generates a PowerShell GUI that implements a Combo Box to list the Health of Services currently running on the machine.
+Uses Windows Forms to generate a PowerShell GUI that implements a Combo Box to list the Health of Services currently running on the user's machine.
