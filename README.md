@@ -27,7 +27,7 @@ Uses Windows Forms to generate a simple button GUI using 100% vanilla powershell
    
 <br>
 
-### [`Test-HelloWorldXMLForm.ps1`](./Scripts/Test-HelloWorldForm.ps1)
+### [`Test-HelloWorldXMLForm.ps1`](./Scripts/Test-HelloWorldXMLForm.ps1)
 Loads an externally developed WPF Form saved in XAML format into a simple button GUI whose control logic is handled by PoweerShell.
    
 <br>
