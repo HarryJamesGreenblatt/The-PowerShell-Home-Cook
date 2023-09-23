@@ -391,7 +391,6 @@ function Limit-OutlookMailbox {
     .OUTPUTS
     [__ComObject] - a filtered view of the specified mail folder limited to the messages
     described by the DASL query
-
 #>
 
     [CmdletBinding()]
