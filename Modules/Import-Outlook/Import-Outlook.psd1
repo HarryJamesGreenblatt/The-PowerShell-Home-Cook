@@ -30,7 +30,7 @@ CompanyName = 'Service-Centric Solutions'
 Copyright = '(c) HarryJamesGreenblatt. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'A collection of modules which facilitate the management of Outlook messages using Outlook''s Message Application Programming Interface (MAPI).'
 
 # Minimum version of the PowerShell engine required by this module
 # PowerShellVersion = ''
