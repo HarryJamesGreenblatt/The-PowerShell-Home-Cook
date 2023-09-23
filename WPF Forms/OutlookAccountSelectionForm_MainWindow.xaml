@@ -1,0 +1,26 @@
+﻿<Window x:Class="WpfApp1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApp1"
+        mc:Ignorable="d"
+        Title="Import-OutlookMail  |  Select Account Information"  Height="282" Width="568" Background="#FFCBCCCC">
+    <Grid Margin="10,0,0,0" HorizontalAlignment="Left" Width="1">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Image x:Name="img_Confirm" Margin="390,63,-495,88" Source="https://cdn2.iconfinder.com/data/icons/greenline/512/check-512.png" Cursor="Hand" Visibility="Collapsed"/>
+
+        <ComboBox x:Name="cbx_Accounts" Margin="23,48,-338,180" Background="#FFFFFBFB" Panel.ZIndex="99"/>
+        <ComboBox x:Name="cbx_Folders" Margin="23,171,-338,58" Background="#FFFFFBFB" Panel.ZIndex="99" Visibility="Collapsed"/>
+        <Button x:Name="btn_Confirm" Content="Confirm Selection" Margin="374,139,-511,0" VerticalAlignment="Top" Height="30" FontSize="16" Cursor="Hand" Background="#FFEDFFF6" BorderBrush="#FFA6C8B4" Foreground="#FF2E9855" Visibility="Collapsed">
+            <Button.Style>
+                <Style/>
+            </Button.Style>
+        </Button>
+        <Label x:Name="lbl_Account" Margin="23,16,-231,195" FontSize="16" Panel.ZIndex="999" RenderTransformOrigin="0.494,0.774" Content="Select an Account"/>
+        <Label x:Name="lbl_Folder" Margin="23,143,-188,68" FontSize="16" RenderTransformOrigin="0.495,0.774" Content="Select a Folder" Visibility="Collapsed"/>
+
+    </Grid>
+</Window>
