@@ -12,7 +12,7 @@ Converts a provided string input to generative ASCII Typesetting produced by the
    
 <br>   
    
-### [`Import-Outlook`](./Modules/Import-Outlook/Import-Outlook.psm1)
+### [`Import-Outlook`](./Modules/Import-Outlooks/Import-Outlook.psm1)
 A collection of modules which facilitate the management of Outlook messages using Outlook's  Message Application Programming Interface (MAPI).
    
 - #### [`Receive-OutlookMail`](./Modules/Import-Outlook/Import-Outlook.psm1)
