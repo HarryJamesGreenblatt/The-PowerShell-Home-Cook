@@ -1,7 +1,7 @@
-function Import-OutlookMail {
+function Receive-OutlookMailbox {
 <#
     .SYNOPSIS
-    Connects to the user's Outlook account and retrieves all mail from the specified mail folder as a powershell object.
+    Connects to the user's Outlook account and retrieves the specified mail folder as a powershell Com Object.
 
     .DESCRIPTION
     Creates a connection to the logged-in user's microsoft exchange server via instatiation of an
@@ -26,10 +26,10 @@ function Import-OutlookMail {
     If not provided, a WPF GUI is launched to retrieve it as input from the user.
     
     .OUTPUTS
-    [__ComObject] - a collection of all emails retrieved from the specified account and mail folder.
+    [__ComObject] - a reference to the specified account and mail folder.
 
     .EXAMPLE
-    Import-Outlook
+    Receive-OutlookMailbox
 
     Note:
     ***An Outlook Account Selection GUI will open and prompt the user for the account and mail folder***
@@ -38,19 +38,19 @@ function Import-OutlookMail {
     
     .EXAMPLE
     Import-Oulook -OutlookAccountByParam user@mail.com -MailFolderByParam Inbox
-    
-    Note:
-    ***No GUI is launched since the required information is provided by the parameters***
-    
-    (ALL EMAILS within the *selected folder* on the *selected account* are returned)
+        
+        Note:
+        ***No GUI is launched since the required information is provided by the parameters***
+        
+        (ALL EMAILS within the *selected folder* on the *selected account* are returned)
     
     .EXAMPLE
-    Import-Outlook -MailFolderByParam Inbox | sort SentOn -Descending | select -First 1
+    Receive-OutlookMailbox -MailFolderByParam Inbox | sort SentOn -Descending | select -First 1
 
-    Note:
-    ***An Outlook Account Selection GUI will open and prompt the user for the account and mail folder***
+        Note:
+        ***An Outlook Account Selection GUI will open and prompt the user for the account and mail folder***
 
-    (The most recent email within the *selected mail folder* of the *selected account* will be returned)
+        (The most recent email within the *selected mail folder* of the *selected account* will be returned)
 #>
     
     [CmdletBinding()]
@@ -314,7 +314,9 @@ function Import-OutlookMail {
             belonging to the $SelectedOutlookAccount account. 
             "
 
-            $Mailbox.Items
+            $Date = [datetime] '09/01/2023'
+
+            $Mailbox
             
         }
 
@@ -330,7 +332,134 @@ function Import-OutlookMail {
     }
 }
 
-Export-ModuleMember -Function Import-OutlookMail
+Export-ModuleMember -Function Receive-OutlookMailbox
+
+
+
+
+function Limit-OutlookMailbox {
+<#
+    .SYNOPSIS
+    Limits the quantity of ComObjects collected from the user's Outlook Mail Folder 
+    using a DASL Filter Query string.
+
+    .DESCRIPTION
+    Given a ComObject referencing an Outlook mail folder via the MAPI namespace,
+    the initial state is a reference to the full contents of the mail folder,
+    which often are quite large (thousands of messages). 
+    
+    As such, executing sort or filter operations via the pipeline,
+    
+        ex. $OutlookMailbox | Sort-Object SentOn | Where-Object SenderName -match google 
+
+    is extremely slow and inefficient due to the data's existance as a reference to an external
+    data source, which, as a ComObject, is essentially asking the exchange server to remotely
+    sort on the ENTIRE contents of the mailbox, then search the ENTIRE contents of the mailbox again
+    for the search string, and then return the result to powershell at the end, for thousands of 
+    messages, each of which track dozens of properties.
+    
+    One approach which can be used to mitigate this limitation is the Restrict() method inherent to
+    the Outlook ComObject's 'Items' property, which is inherent to each Outlook Folder.
+
+    The Restrict() Method takes a DASL Filter Query String which employs uniquely specific syntax.
+    Properly filtering the data source using these DASL filter queries results in markedly improved
+    performance for both filter and search operations. Below is the equivalent DASL to reproduce the 
+    example given above:
+    
+        ex. $OutlookMailbox.Items.Restrict( SQL@="urn:schemas:httpmail:sender" LIKE '%google%' )
+
+    The function will automatically convert a less verbose string into this syntax, such that running
+    the function with the following arguments will acheive the same result as the example above:
+    
+        ex. $OutlookMailbox | Limit-OutlookMailbox "sender LIKE '%google%'"
+
+    .PARAMETER FilterQuery
+    [string] - A simplified , albeit DASL-compliant, filter query string which only requires
+    the   ur:schemas:httpmail endpoint,   the operator   and the   serach term.
+    
+    definitively,
+                " sender                    LIKE                   '%google%' "
+        urn:schemas:httpmail endpoint,   the operator   and the    serach term.
+
+    .PARAMETER Mailbox
+    [__ComObject] - A reference connecting to the entire contents of an Outlook mail folder.
+    May be optionally passed as pipeline input. 
+
+    .EXAMPLE
+    Receive-OutlookMailbox $OutlookAcoount $MailFoler | Limit-OutlookMailbox "sender LIKE '%google%'"
+
+       ( Returns only the messages in the $MailFolder sent by google. )
+    
+    .OUTPUTS
+    [__ComObject] - a filtered view of the specified mail folder limited to the messages
+    described by the DASL query
+
+#>
+
+    [CmdletBinding()]
+
+    param (
+
+        [Parameter(Mandatory=$true)]
+        [string] 
+        $FilterQuery,
+
+        [Parameter(ValueFromPipeline, Mandatory=$true)]
+        [__ComObject] 
+        $Mailbox
+
+    )
+    
+
+    begin {
+        
+        Write-Verbose "
+        The unmodified Filter Query provided was:`n`n`t$FilterQuery
+        "
+        
+        $DASL = $FilterQuery -replace '(.*)(AND|OR)' , 'urn:schemas:httpmail:$1$2' `
+        -replace '(AND|OR) (.+)', '$1 urn:schemas:httpmail:$2' `
+        -replace '(.+)'         , '@SQL=$1' `
+        -replace '(urn:schemas:httpmail:[a-z]+)' , '"$1"' `
+        -replace '@SQL=$', ''
+        
+        Write-Verbose "
+        After converting the Filter Query to conform to DASL syntax, we have:
+        `n`t$DASL
+        "
+
+    }
+    
+
+    process {
+        
+        Write-Verbose "
+        Now limiting the $($Mailbox.Name) mail folder only to 
+        messages that satisfy the DASL Query.
+        "
+        
+        $FilteredMail   =   $Mailbox.Items.Restrict( $DASL )
+
+        $MailSize       = ( $FilteredMail | Select-Object * ).Length 
+        $OutlookAccount = ( $FilteredMail | Select-Object -First 1 ).ReceivedByName 
+
+    }
+    
+
+    end {
+
+        $FilteredMail
+        
+        Write-Verbose "
+        $OutlookAccount's $($Mailbox.Name) mail folder 
+        was successfully limited to:`t$MailSize messages.
+        "
+
+    }
+
+}
+
+Export-ModuleMember -Function Limit-OutlookMailbox
 
 
 
@@ -357,7 +486,7 @@ function Import-WPFDataFromXAML {
     .EXAMPLE
     Import-WPFDataFromXAML $xamlFIlePath
 
-    **NO OUTPUT**
+        **NO OUTPUT**
 
     .OUTPUTS
     Although no immeadiate output is generated as a result of invoking the function,

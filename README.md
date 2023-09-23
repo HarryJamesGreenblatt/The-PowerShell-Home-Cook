@@ -12,11 +12,17 @@ Converts a provided string input to generative ASCII Typesetting produced by the
    
 <br>   
    
-### [`Import-OutlookMail`](./Modules/Import-OutlookMail/Import-OutlookMail.psm1)
-Connects to the user's Outlook account and retrieves all mail from the specified mail folder as a powershell object.
+### [`Import-Outlook`](./Modules/Import-OutlookMail/Import-Outlook.psm1)
+A collection of function which facilitate the management of Outlook messages using Outlook's  Message Application Programming Interface (MAPI).
    
-- #### [`Import-WPFDataFromXAML`](./Modules/Import-OutlookMail/Import-OutlookMail.psm1)
-    Loads a WPF form using the XMAL file at specified file path and creates script-scoped variables which reference all the form's controls by name.   
+- #### [`Import-WPFDataFromXAML`](./Modules/Import-Outlook/Import-Outlook.psm1)
+    Loads a WPF form using the XMAL file at specified file path and creates script-scoped variables which reference all the form's controls by name. 
+
+- #### [`Receive-OutlookMail`](./Modules/Import-Outlook/Import-Outlook.psm1)
+    Connects to the user's Outlook account and retrieves the specified mail folder as a powershell Com Object.   
+
+- #### [`Limit-OutlookMail`](./Modules/Import-Outlook/Import-Outlook.psm1)
+    Limits the quantity of ComObjects collected from the user's Outlook Mail Folder using a DASL Filter Query string.   
 
 <br>
 <br>

@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = '.\Import-OutlookMail.psm1'
+RootModule = '.\Import-Outlook.psm1'
 
 # Version number of this module.
 ModuleVersion = '0.0.1'
@@ -24,7 +24,7 @@ GUID = '572a7614-671f-494d-aafa-b316dc19c260'
 Author = 'HarryJamesGreenblatt'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'Service-Centric Solutions'
 
 # Copyright statement for this module
 Copyright = '(c) HarryJamesGreenblatt. All rights reserved.'
@@ -69,7 +69,7 @@ Copyright = '(c) HarryJamesGreenblatt. All rights reserved.'
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Import-OutlookMail', 'Import-WPFDataFromXAML')
+FunctionsToExport = @('Receive-OutlookMailbox', 'Limit-OutlookMailbox', 'Import-WPFDataFromXAML')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'
