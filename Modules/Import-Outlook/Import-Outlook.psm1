@@ -570,7 +570,7 @@ function Send-OutlookMail {
         $Subject,
         
         [string]
-        $Body,
+        $Body = ' ',
         
         [string] 
         $HTMLBody,
@@ -640,7 +640,7 @@ function Send-OutlookMail {
                 $NewMail.$_ = $params[ $_ ] 
 
                 Write-Verbose "
-                The $_ Property in the New Mail Object has now been set to:  $params[ $_ ] 
+                The $_ Property in the New Mail Object has now been set to:  $($params[ $_ ]) 
                 "
 
             }
