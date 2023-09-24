@@ -536,7 +536,6 @@ function Send-OutlookMail {
 
         ( programatically sends a plaintext body message to given recipient  )
         
-
     .EXAMPLE
     Send-OutlookMail `
         -To         'Them@Email.com '`
@@ -546,7 +545,6 @@ function Send-OutlookMail {
         
         ( opens the Outlook App's New Mail window, and allows an HTML body message 
           to the given recipient to be sent manually  )
-
 
     .EXAMPLE
     Send-OutlookMail `
@@ -646,10 +644,12 @@ function Send-OutlookMail {
                 "
 
             }
+        
         }
         
     }
     
+
     end {
 
         Write-Verbose "
@@ -682,6 +682,7 @@ function Send-OutlookMail {
         }
     
     }
+
 }
 
 Export-ModuleMember -Function Send-OutlookMail
@@ -732,6 +733,7 @@ function Import-WPFDataFromXAML {
         $xamlFilePath
     )
 
+
     begin{
         # Import WPF
         Add-Type -AssemblyName PresentationFramework
@@ -742,6 +744,7 @@ function Import-WPFDataFromXAML {
         # Transorm the Input XAML to normalize it for integration with PowerShell 
         $inputXAML = $inputXAML -replace 'mc:Ignorable="d"','' -replace 'x:N','N' -replace '^<Win.*', '<Window'
     }
+
 
     process{
         # Convert the Input XAML into a strictly typed XAML object
@@ -759,6 +762,7 @@ function Import-WPFDataFromXAML {
             throw
         }
     }
+
 
     end{
         # Iterate through the XAML nodes to create script-scoped variables featuring names,
@@ -778,7 +782,8 @@ function Import-WPFDataFromXAML {
 
         # Create a script-scoped variable that stores the entire Form 
         Set-Variable -Name "form" -Value $form -Scope Script
-    }             
+    }   
+              
 }
 
 Export-ModuleMember -Function Import-WPFDataFromXAML
