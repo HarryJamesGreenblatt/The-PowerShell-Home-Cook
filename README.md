@@ -25,7 +25,7 @@ A collection of modules which facilitate the management of Outlook messages usin
     Sends an Outlook message, inculding any attachments, by way of either a plaintext or HTML Body format, to the given recipient address.
 
 - #### [`Import-WPFDataFromXAML`](./Modules/Import-Outlook/Import-Outlook.psm1)
-    Loads a WPF form using the XMAL file at specified file path and creates script-scoped variables which reference all the form's controls by name. 
+    Loads a WPF Form using the XAML file at specified file path and creates script-scoped variables which reference all the form's controls by name. 
 
 <br>
 <br>
