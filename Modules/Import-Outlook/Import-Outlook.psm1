@@ -417,11 +417,19 @@ function Limit-OutlookMailbox {
         if( ( $FilterQuery | Select-String '\sAND|OR\s' ).Matches.Success ){
 
             $DASL =  $FilterQuery `
-                -replace '(.*)(AND|OR)' , 'urn:schemas:httpmail:$1$2' `
-                -replace '(AND|OR) (.+)', '$1 urn:schemas:httpmail:$2' `
-                -replace '(.+)'         , '@SQL=$1' `
+                -replace '('
+                          +
+                          '\bfrom\b|\bto\b|\bsubject\b|\bdatereceived\b|\btextdescription\b|'
+                          +
+                          '\bhasattachment\b|\battachmentfilename\b|\bsender\b|\bcc\b|\bbcc\b|'
+                          +
+                          '\breply-to\b|\bpriority\b|\bread\b|\breferences\b|\bthread-topic\b|'
+                          +
+                          '\bthread-index\b'
+                          +
+                          ')'                            , 'urn:schemas:httpmail:$1' `
                 -replace '(urn:schemas:httpmail:[a-z]+)' , '"$1"' `
-                -replace '@SQL=$', '' `
+                -replace '(.+)'                          , '@SQL=$1' `
 
         }
         
@@ -429,7 +437,7 @@ function Limit-OutlookMailbox {
 
             $DASL = $FilterQuery `
                 -replace '(^.+\s)' , 'urn:schemas:httpmail:$1' `
-                -replace '(.+)'    , '@SQL=$1' `
+                -replace '(.+)', '@SQL=$1' `
                 -replace '(urn:schemas:httpmail:[a-z]+)' , '"$1"' `
 
         }
@@ -470,6 +478,122 @@ function Limit-OutlookMailbox {
 }
 
 Export-ModuleMember -Function Limit-OutlookMailbox
+
+
+
+
+
+function Send-OutlookMail {
+<#
+    .SYNOPSIS
+    synopsis goes here...
+
+    .DESCRIPTION
+    description goes here...
+    
+    .PARAMETER To
+    discuss the parameter
+    
+    .PARAMETER From
+    discuss the parameter
+    
+    .PARAMETER Subject
+    discuss the parameter
+    
+    .PARAMETER Body
+    discuss the parameter
+
+    .PARAMETER AsHTML
+    discuss the parameter
+
+    .PARAMETER Display
+    discuss the parameter
+
+    .EXAMPLE
+
+
+#>
+
+    [CmdletBinding()]
+    
+    param (
+        
+        [string]
+        $To,
+
+        [string]
+        $Subject,
+        
+        [string]
+        $Body,
+        
+        [string] 
+        $HTMLBody,
+
+        [string[]]
+        $Attachments,
+
+        [switch] 
+        $Display
+
+    )
+
+    
+    begin {
+        
+        $Outlook = New-Object -ComObject Outlook.Application
+        
+        $NewMail = $Outlook.CreateItem(0)
+
+        $params = @{
+            To          = $To
+            Subject     = $Subject
+            Body        = $Body
+            HTMLBody    = $HTMLBody
+            Attachments = $Attachments
+        }
+
+    }
+    
+
+    process {
+
+        $params.Keys | ForEach-Object { 
+
+            If( $_ -eq 'Attachments'){
+                
+                $params[ 'Attachments' ] | ForEach-Object {
+                    $NewMail.Attachments.Add($_) | Out-Null
+                }
+
+            }
+            
+            else {
+                $NewMail.$_ = $params[ $_ ] 
+            }
+        }
+        
+    }
+    
+    end {
+        
+        if( $Display ){
+
+            $NewMail.GetInspector.Activate()
+        
+        }
+
+        else {
+
+            $NewMail.Send()
+            
+        }
+    
+    }
+}
+
+Export-ModuleMember -Function Send-OutlookMail
+
 
 
 
