@@ -600,15 +600,15 @@ function Send-OutlookMail {
         $params = @{
             To          = $To
             Subject     = $Subject
-            Attachments = $Attachments
-            Body        = $Body ? $Body : $HTMLBody
             HTMLBody    = $HTMLBody
+            Body        = $Body
+            Attachments = $Attachments
         }
-        
+
         Write-Verbose "
         The New Mail Item has been created and is of type $($NewMail.GetType()).`n
         The params hash object has been created and has stored the following keys:
-        $($params.Keys -join ', ').  
+        $(($params.Keys | Sort-Object ) -join ', ').  
         "
 
     }
@@ -621,7 +621,7 @@ function Send-OutlookMail {
         assign them as values within the New Mail Object 
         "
 
-        $params.Keys | ForEach-Object { 
+        $params.Keys | Sort-Object | ForEach-Object { 
 
             If( $_ -eq 'Attachments'){
                 
