@@ -486,31 +486,77 @@ Export-ModuleMember -Function Limit-OutlookMailbox
 function Send-OutlookMail {
 <#
     .SYNOPSIS
-    synopsis goes here...
+    Sends an Outlook message, inculding any attachments, by way of 
+    either a plaintext or HTML Body format, to the given recipient address.
 
     .DESCRIPTION
-    description goes here...
+    Creates a COM Object reference to the Outlook Application, which provides
+    a template to submit a New Email. Once the COM Object reference is established, 
+    resulting in the creation of a MailItem Object Reference, each of the 
+    given parameters are stored into a hash object, where they are then
+    accessed iteratively by their Keys (which are named after the same properties present
+    in the MailItem Object). This operation sets the New Mail Item's properties to reflect 
+    the prameters values provided.
+
+    The message can be formatted either as plaintext, which is acheivable by way 
+    of providing a string input into the Body parameter, or as HTML, which is 
+    acheivable by way of providing an HTML string into the HTML Body parameter. 
+    
+    Once the New Mail Item's properties get set, an optional Disply switch paramter 
+    is evaluated. If given, the Display switch will then open the Outlook application's
+    New Email window, already prefilled with the values (To, Subject, Body, etc) 
+    which were provided as parameters. Note however that, in this scenario, the user 
+    must manually send the message.
+    
+    Otherwise, should the Display switch parameter not be given, the Outlook message is
+    sent programatically, without manual intervention.
     
     .PARAMETER To
-    discuss the parameter
-    
-    .PARAMETER From
-    discuss the parameter
-    
+    [string] - The recipients email address. 
+
     .PARAMETER Subject
-    discuss the parameter
+    [string] - the subject of the Outlook message.
     
     .PARAMETER Body
-    discuss the parameter
+    [string] - A plaintext string that will serve as the Outlook message body.
 
-    .PARAMETER AsHTML
-    discuss the parameter
+    .PARAMETER HTMLBody
+    [string] - An HTML string which, if provided, will be rendered as the 
+    Outlook message body. 
 
     .PARAMETER Display
-    discuss the parameter
+    [switch] - A boolean flag that initiates launching the Outlook Application
+    in order to manually send the message. 
 
     .EXAMPLE
+    Send-OutlookMail `
+        -To         'Them@Email.com '`
+        -Subject    'Message Subject Goes Here' `
+        -Body       'Plaintext message body.'
 
+        ( programatically sends a plaintext body message to given recipient  )
+        
+
+    .EXAMPLE
+    Send-OutlookMail `
+        -To         'Them@Email.com '`
+        -Subject    'Message Subject Goes Here' `
+        -HTMLBody   '<h1> HTML message body. </h1>'
+        -Display
+        
+        ( opens the Outlook App's New Mail window, and allows an HTML body message 
+          to the given recipient to be sent manually  )
+
+
+    .EXAMPLE
+    Send-OutlookMail `
+        -To            'Them@Email.com '`
+        -Subject       'Message Subject Goes Here' `
+        -Body          'Plaintext message body.'
+        -Attachments   @('./File1.pdf', '../../File2.xlsx')
+
+        ( programatically sends a plaintext body message to given recipient
+          which includes all the files given as attachments )
 
 #>
 
@@ -518,6 +564,7 @@ function Send-OutlookMail {
     
     param (
         
+        [Parameter(Mandatory=$true)]
         [string]
         $To,
 
@@ -540,8 +587,15 @@ function Send-OutlookMail {
 
     
     begin {
+
         
         $Outlook = New-Object -ComObject Outlook.Application
+        
+        
+        Write-Verbose "
+        Now creating a New Mail Object in Outlook and storing the
+        given parameters in a hash object. 
+        "
         
         $NewMail = $Outlook.CreateItem(0)
 
@@ -552,11 +606,22 @@ function Send-OutlookMail {
             HTMLBody    = $HTMLBody
             Attachments = $Attachments
         }
+        
+        Write-Verbose "
+        The New Mail Item has been created and is of type $($NewMail.GetType()).`n
+        The params hash object has been created and has stored the following keys:
+        $($params.Keys -join ', ').  
+        "
 
     }
     
 
     process {
+
+        Write-Verbose "
+        Now iterating through the keys of the given parameters to
+        assign them as values within the New Mail Object 
+        "
 
         $params.Keys | ForEach-Object { 
 
@@ -566,19 +631,36 @@ function Send-OutlookMail {
                     $NewMail.Attachments.Add($_) | Out-Null
                 }
 
+                Write-Verbose "
+                $_ was added as an Attachment to the New Mail Item.
+                "
+
             }
             
             else {
+
                 $NewMail.$_ = $params[ $_ ] 
+
+                Write-Verbose "
+                The $_ Property in the New Mail Object has now been set to:  $params[ $_ ] 
+                "
+
             }
         }
         
     }
     
     end {
+
+        Write-Verbose "
+        Determining whether or not to Display the New Mail Window.
+        "
         
         if( $Display ){
 
+            Write-Verbose "
+            The Display switch was given. Now launching the New Mail Window in Outlook.
+            "
             $NewMail.GetInspector.Activate()
         
         }
@@ -586,6 +668,16 @@ function Send-OutlookMail {
         else {
 
             $NewMail.Send()
+
+            Write-Verbose "
+                $(
+                    $NewMail.Sent `
+                    ? `
+                    "The Email to $($NewEmail.To) was successfully sent." `
+                    : `
+                    "The Email was not sent. Something went wrong."
+                )
+            "
             
         }
     
