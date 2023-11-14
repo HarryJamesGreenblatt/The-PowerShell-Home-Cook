@@ -27,6 +27,9 @@ A collection of modules which facilitate the management of Outlook messages usin
 - #### [`Import-WPFDataFromXAML`](./Modules/Import-Outlook/Import-Outlook.psm1)
     Loads a WPF Form using the XAML file at specified file path and creates script-scoped variables which reference all the form's controls by name. 
 
+- #### [`Exit-OutlookSession`](./Modules/Import-Outlook/Import-Outlook.psm1)
+    Stops all Outlook running Outlook processes as to not leave persistent connections to the Exchange Server.
+
 <br>
 <br>
 
