@@ -417,17 +417,7 @@ function Limit-OutlookMailbox {
         if( ( $FilterQuery | Select-String '\sAND|OR\s' ).Matches.Success ){
 
             $DASL =  $FilterQuery `
-                -replace '('
-                          +
-                          '\bfrom\b|\bto\b|\bsubject\b|\bdatereceived\b|\btextdescription\b|'
-                          +
-                          '\bhasattachment\b|\battachmentfilename\b|\bsender\b|\bcc\b|\bbcc\b|'
-                          +
-                          '\breply-to\b|\bpriority\b|\bread\b|\breferences\b|\bthread-topic\b|'
-                          +
-                          '\bthread-index\b'
-                          +
-                          ')'                            , 'urn:schemas:httpmail:$1' `
+                -replace '(\bfrom\b|\bto\b|\bsubject\b|\bdatereceived\b|\btextdescription\b|\bhasattachment\b|\battachmentfilename\b|\bsender\b|\bcc\b|\bbcc\b|\breply-to\b|\bpriority\b|\bread\b|\breferences\b|\bthread-topic\b|\bthread-index\b)', 'urn:schemas:httpmail:$1' `
                 -replace '(urn:schemas:httpmail:[a-z]+)' , '"$1"' `
                 -replace '(.+)'                          , '@SQL=$1' `
 
@@ -681,6 +671,8 @@ function Send-OutlookMail {
             "
             
         }
+
+        Exit-OutlookSession
     
     }
 
@@ -788,3 +780,24 @@ function Import-WPFDataFromXAML {
 }
 
 Export-ModuleMember -Function Import-WPFDataFromXAML
+
+
+
+
+
+function Exit-OutlookSession {
+<#
+    .SYNOPSIS
+    Stops all Outlook running Outlook processes as to not leave persistent connections
+    to the Exchange Server.
+
+    .DESCRIPTION
+    Invokes Get-Process to collect any running instances of the Outlook Application,
+    then pipes those instances into a command to stop the process.
+#>
+
+    Get-Process -Name Outlook | Stop-Process
+
+}
+
+Export-ModuleMember -Function Exit-OutlookSession
