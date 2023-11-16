@@ -788,7 +788,7 @@ Export-ModuleMember -Function Import-WPFDataFromXAML
 function Exit-OutlookMailbox {
 <#
     .SYNOPSIS
-    Stops all Outlook running Outlook processes as to not leave persistent connections
+    Stops all running Outlook processes as to not leave persistent connections
     to the Exchange Server.
 
     .DESCRIPTION
