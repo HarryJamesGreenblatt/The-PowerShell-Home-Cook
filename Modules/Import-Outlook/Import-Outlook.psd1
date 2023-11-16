@@ -69,7 +69,7 @@ Description = 'A collection of modules which facilitate the management of Outloo
 # NestedModules = @()
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
-FunctionsToExport = @('Receive-OutlookMailbox', 'Limit-OutlookMailbox', 'Send-OutlookMail', 'Import-WPFDataFromXAML', 'Exit-OutlookSession')
+FunctionsToExport = @('Receive-OutlookMailbox', 'Limit-OutlookMailbox', 'Send-OutlookMail', 'Import-WPFDataFromXAML', 'Exit-OutlookMailbox')
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = '*'

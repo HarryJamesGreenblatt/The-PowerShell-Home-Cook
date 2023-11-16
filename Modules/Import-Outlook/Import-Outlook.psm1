@@ -672,7 +672,7 @@ function Send-OutlookMail {
             
         }
 
-        Exit-OutlookSession
+        Exit-OutlookMailbox
     
     }
 
@@ -785,7 +785,7 @@ Export-ModuleMember -Function Import-WPFDataFromXAML
 
 
 
-function Exit-OutlookSession {
+function Exit-OutlookMailbox {
 <#
     .SYNOPSIS
     Stops all Outlook running Outlook processes as to not leave persistent connections
@@ -800,4 +800,4 @@ function Exit-OutlookSession {
 
 }
 
-Export-ModuleMember -Function Exit-OutlookSession
+Export-ModuleMember -Function Exit-OutlookMailbox
