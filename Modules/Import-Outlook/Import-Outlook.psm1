@@ -658,21 +658,21 @@ function Send-OutlookMail {
 
         else {
 
-            $NewMail.Send()
+            try {
+                $NewMail.Send()
+                
+                Write-Verbose "
+                The Email to $($NewEmail.To) was successfully sent.
+                "
+            }
 
-            Write-Verbose "
-                $(
-                    $NewMail.Sent `
-                    ? `
-                    "The Email to $($NewEmail.To) was successfully sent." `
-                    : `
-                    "The Email was not sent. Something went wrong."
-                )
-            "
-            
+            catch {
+                Write-Verbose "
+                The Email was not sent. Something went wrong.
+                "
+            }
+
         }
-
-        Exit-OutlookMailbox
     
     }
 
