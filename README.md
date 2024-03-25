@@ -29,7 +29,11 @@ A collection of modules which facilitate the management of Outlook messages usin
 
 - #### [`Exit-OutlookMailbox`](./Modules/Import-Outlook/Import-Outlook.psm1)
     Stops all Outlook running Outlook processes as to not leave persistent connections to the Exchange Server.
-
+   
+<br>   
+   
+### [`Convert-JsxForCopilotM365`](./Modules/Convert-JsxForCopilotM365/Convert-JsxForCopilotM365.psm1)
+Converts JSX tags to HTML entities using a Python script.
 <br>
 <br>
 
