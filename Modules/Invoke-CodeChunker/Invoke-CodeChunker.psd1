@@ -24,7 +24,7 @@ GUID = '60b5f244-bf66-41a6-9b33-353abcc2795c'
 Author = 'HarryJamesGreenblatt'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'Sequitur Solutions'
 
 # Copyright statement for this module
 Copyright = '(c) HarryJamesGreenblatt. All rights reserved.'
