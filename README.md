@@ -34,6 +34,16 @@ A collection of modules which facilitate the management of Outlook messages usin
    
 ### [`Convert-JsxForCopilotM365`](./Modules/Convert-JsxForCopilotM365/Convert-JsxForCopilotM365.psm1)
 Converts JSX tags to HTML entities using a Python script.
+
+<br>
+   
+### [`Invoke-CodeChunker`](./Modules/Invoke-CodeChunker/Invoke-CodeChunker.psm1)
+Converts JSX tags to HTML entities using a Python script.
+
+<br>
+   
+### [`Find-HexColorCodes`](./Modules/Find-HexColorCodes/Find-HexColorCodes.psm1)
+Converts JSX tags to HTML entities using a Python script.
 <br>
 <br>
 
