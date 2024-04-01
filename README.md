@@ -38,12 +38,13 @@ Converts JSX tags to HTML entities using a Python script.
 <br>
    
 ### [`Invoke-CodeChunker`](./Modules/Invoke-CodeChunker/Invoke-CodeChunker.psm1)
-Converts JSX tags to HTML entities using a Python script.
+Invokes a Python script to chunk code into 2000 character segments for sharing in the Copilot chat window.
 
 <br>
    
 ### [`Find-HexColorCodes`](./Modules/Find-HexColorCodes/Find-HexColorCodes.psm1)
-Converts JSX tags to HTML entities using a Python script.
+Searches for hex color codes in all files within a specified directory.
+
 <br>
 <br>
 
