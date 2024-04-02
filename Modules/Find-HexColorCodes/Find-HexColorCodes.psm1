@@ -77,22 +77,16 @@ function Find-HexColorCodes {
     
     end{
 
-        # Output the list of unique color matches, should any exist.
-        # Otherwise, print a message informing the user nothing was found.
-        $colorObjects.Length -gt 0 `
-            ? $colorObjects `
-            : "No hex color codes could be found."
-
-        # if the displayColorTable switch is used,
+        # if the displayColorTable switch is used and there were any successful color matches,
         # render a table in HTML consisting of each of the colors found
-        if($displayColorTable){
+        if($displayColorTable -and $colorObjects){
             '<style>'+
-                'body{background: #111111; font-family: "Segoe UI"}'+
+            'body{background: #111111; font-family: "Segoe UI"}'+
             '</style>'+
             '<table style="background: #333333; color: white;" border="1">' +
             '<tr>' +
-                '<th style="padding: 0 1em;">Code</th>'+
-                '<th style="padding: 0 1em;">Color</th>'+
+            '<th style="padding: 0 1em;">Code</th>'+
+            '<th style="padding: 0 1em;">Color</th>'+
             '</tr>'+
             $( $colorObjects |% {
                 '<tr>'+
@@ -101,10 +95,16 @@ function Find-HexColorCodes {
                 '</tr>'
             }) +
             "</table>" | Out-File ~\Documents\ColorTable.html `
-                         && Invoke-Item ~\Documents\ColorTable.html `
-                         && sleep 1 `
-                         && Remove-Item ~\Documents\ColorTable.html
+            && Invoke-Item ~\Documents\ColorTable.html `
+            && sleep 1 `
+            && Remove-Item ~\Documents\ColorTable.html
         }
+
+        # Output the list of unique color matches, should any exist.
+        # Otherwise, print a message informing the user nothing was found.
+        $colorObjects `
+            ? $colorObjects `
+            : "No hex color codes could be found."
     }
     
 }
