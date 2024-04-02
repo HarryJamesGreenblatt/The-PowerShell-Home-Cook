@@ -43,7 +43,7 @@ Invokes a Python script to chunk code into 2000 character segments for sharing i
 <br>
    
 ### [`Find-HexColorCodes`](./Modules/Find-HexColorCodes/Find-HexColorCodes.psm1)
-Searches for hex color codes in all files within a specified directory.
+Searches for hex color codes in all files within a specified directory and optionally displays a webpage depicting it as a color table.
 
 <br>
 <br>
