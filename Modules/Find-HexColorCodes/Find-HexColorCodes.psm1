@@ -83,26 +83,27 @@ function Find-HexColorCodes {
             ? $colorObjects `
             : "No hex color codes could be found."
 
-        # Check if the displayColorTable switch is used
+        # if the displayColorTable switch is used,
+        # render a table in HTML consisting of each of the colors found
         if($displayColorTable){
             '<style>'+
-               'body{background: #111111; font-family: "Segoe UI"}'+
+                'body{background: #111111; font-family: "Segoe UI"}'+
             '</style>'+
             '<table style="background: #333333; color: white;" border="1">' +
             '<tr>' +
                 '<th style="padding: 0 1em;">Code</th>'+
                 '<th style="padding: 0 1em;">Color</th>'+
             '</tr>'+
-            $( Find-HexColorCodes -directoryPath $directoryPath |% {
+            $( $colorObjects |% {
                 '<tr>'+
                 "<td>$($_.colorCode)</td>"+
                 "<td style=""background-color: $($_.colorCode);""></td>"+
                 '</tr>'
             }) +
             "</table>" | Out-File ~\Documents\ColorTable.html `
-                       && Invoke-Item ~\Documents\ColorTable.html `
-                       && sleep 1 `
-                       && Remove-Item ~\Documents\ColorTable.html
+                         && Invoke-Item ~\Documents\ColorTable.html `
+                         && sleep 1 `
+                         && Remove-Item ~\Documents\ColorTable.html
         }
     }
     
@@ -110,4 +111,3 @@ function Find-HexColorCodes {
 
 
 Export-ModuleMember -Function Find-HexColorCodes
-
