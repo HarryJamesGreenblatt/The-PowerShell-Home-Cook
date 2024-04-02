@@ -99,10 +99,10 @@ function Find-HexColorCodes {
                 "<td style=""background-color: $($_.colorCode);""></td>"+
                 '</tr>'
             }) +
-            "</table>" | Out-File ~\Documents\colors.html `
-                       && Invoke-Item ~\Documents\colors.html `
+            "</table>" | Out-File ~\Documents\ColorTable.html `
+                       && Invoke-Item ~\Documents\ColorTable.html `
                        && sleep 1 `
-                       && Remove-Item ~\Documents\colors.html
+                       && Remove-Item ~\Documents\ColorTable.html
         }
     }
     
