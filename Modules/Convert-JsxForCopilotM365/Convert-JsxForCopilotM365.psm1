@@ -4,7 +4,8 @@ function Convert-JsxForCopilotM365 {
     Converts JSX tags to HTML entities using a Python script.
 
     .DESCRIPTION
-    The Convert-JsxForCopilotM365 function takes JSX input, either as an array of objects or from the clipboard, and converts the JSX tags to HTML entities using the "sub_tags_with_entities.py" Python script. The converted JSX is then outputted.
+    The Convert-JsxForCopilotM365 function takes JSX input, either as an array of objects or from the clipboard, 
+    and converts the JSX tags to HTML entities using the "sub_tags_with_entities.py" Python script. The converted JSX is then outputted.
 
     .PARAMETER inputJsx
     An array of objects representing the JSX to be converted. If not provided, the function uses the contents of the clipboard as the input JSX.
