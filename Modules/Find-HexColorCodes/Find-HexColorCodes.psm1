@@ -4,7 +4,8 @@ function Find-HexColorCodes {
     Searches for hex color codes in all files within a specified directory and optionally displays a webpage depicting it as a color table.
 
     .DESCRIPTION
-    The Find-HexColorCodes function crawls through a directory, checking the contents of each file for patterns matching hex codes for colors. It returns a list of all unique color matches found and can optionally display a color table for a visual representation of the colors.
+    The Find-HexColorCodes function crawls through a directory, checking the contents of each file for patterns matching hex codes for colors. 
+    It returns a list of all unique color matches found and can optionally display a color table for a visual representation of the colors.
 
     .PARAMETER directoryPath
     The path to the directory that will be searched.
