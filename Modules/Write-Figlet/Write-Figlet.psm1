@@ -29,7 +29,7 @@ function Write-Figlet {
     
     
         .PARAMETER PythonScript
-        The path the the Write_Fig;et.py script
+        The path the the Write_Figlet.py script
     
     
         .PARAMETER PythonEnvironment
@@ -121,10 +121,10 @@ function Write-Figlet {
             $FontOptions,
     
             [string]
-            $PythonScript = "$($HOME)\Dev\projects\Snake_Bytes\scripts\Write_Figlet.py",
+            $PythonScript = "$PyPath\Write_Figlet.py",
     
             [string]
-            $PythonEnvironment = "$($HOME)\Dev\python\thunderDome\Scripts\Activate.ps1"
+            $PythonEnvironment = $PyEnv
     
         )
         
@@ -174,6 +174,9 @@ function Write-Figlet {
                 Write-Verbose "'$Text' was printed using the '$Font' figlet font"
         
             }
+
+            Write-Verbose "deactivating the Python Environment"
+            deactivate
                 
         }
     
