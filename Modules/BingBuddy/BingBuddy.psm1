@@ -198,7 +198,7 @@ function Get-BingSearchResults {
         }
 
         # Output the results with the Service included
-        $results
+        # $results
 
         Write-Verbose "url: $url`nresponse: $response"
 
