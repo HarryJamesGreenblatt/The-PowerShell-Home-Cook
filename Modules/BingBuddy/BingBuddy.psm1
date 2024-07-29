@@ -1,13 +1,15 @@
- # BingBuddy.psm1
+# BingBuddy.psm1
 <#
     .SYNOPSIS
     BingBuddy is a PowerShell module that provides functions to interact with the Bing Search API.
 
     .DESCRIPTION
-    BingBuddy is designed to simplify the process of making various types of searches using the Bing Search API. It includes functions to invoke searches, process results, and open search result URLs in a web browser.
+    BingBuddy is designed to simplify the process of making various types of searches using the Bing Search API. 
+    It includes functions to invoke searches, process results, and open search result URLs in a web browser.
 
     .FUNCTIONS
-    - Get-BingSearchResults: Performs a search using the Bing Search API and returns the results.
+    - Get-BingSearchResults: Performs a search using the Bing Search API and returns unique results.
+    - Invoke-BingSearch: Invokes a Bing Search and returns results based on the specified query and service type.
     - Open-BingSearchResult: Opens the URL from a Bing search result in the default web browser.
 
     .EXAMPLE
@@ -19,17 +21,16 @@
     $results | Open-BingSearchResult
 
     .NOTES
-    To use the BingBuddy module, you must have a valid Bing Search API key. Ensure that you handle the API key securely and do not expose it in scripts or logs.
+    To use the BingBuddy module, you must have a valid Bing Search API key. 
+    Ensure that you handle the API key securely and do not expose it in scripts or logs.
 
     .LINK
     https://docs.microsoft.com/en-us/azure/cognitive-services/bing-web-search/
-
 #>
 
 
-
-function Get-BingSearchResults {
-<#
+function Invoke-BingSearch {
+    <#
     .SYNOPSIS
     Invokes a Bing Search and returns results based on the specified query and service type.
 
@@ -70,7 +71,7 @@ function Get-BingSearchResults {
 
     .LINK
     https://docs.microsoft.com/en-us/azure/cognitive-services/bing-web-search/
-#>
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]
@@ -100,7 +101,7 @@ function Get-BingSearchResults {
         $ResultsCount,
 
         [Parameter()]
-        [switch]
+        [boolean]
         $NSFW,
 
         [Parameter()]
@@ -192,7 +193,7 @@ function Get-BingSearchResults {
             "suggestions" { 
                             $response.suggestionGroups.searchSuggestions 
                                 | ForEach-Object { Add-ServiceProperty $_ $Service } 
-                          }
+                            }
             default       { throw "Invalid service path provided." }
         }
 
@@ -221,23 +222,124 @@ function Get-BingSearchResults {
 
         # Check if the response service was 'suggestion' and return its value if so
         if ($response.PSObject.Properties.Name -match 'suggestion') {
-            $response.suggestionGoups.searchSuggestions
+            $response.suggestionGoups.searchSuggestions 
         } 
 
         # Otherwise, check if the response contains the expected property and return its value
         elseif ($response.PSObject.Properties.Name -contains $expectedProperty) {
-            $response.$expectedProperty.value
+            $response.$expectedProperty.value 
         } 
         
         # Fallback to 'value' if the expected property is not found
         elseif ($response.PSObject.Properties.Name -contains 'value') {
-            $response.value
+            $response.value 
         } 
         
         else {
             # Handle cases where the response structure is unexpected
             Write-Error "Unexpected response structure for service path: $Service"
         }
+
+    }
+}
+
+
+
+function Get-BingSearchResults {
+    <#
+    .SYNOPSIS
+    Performs a search using the Bing Search API and returns unique results.
+
+    .DESCRIPTION
+    This function is a wrapper around the Invoke-BingSearch function. 
+    It performs a search using the Bing Search API and filters out duplicate results.
+
+    .PARAMETER Query
+    The search query string to be submitted to the Bing Search API.
+
+    .PARAMETER Service
+    The type of search service to use. 
+    Valid options are web, images, videos, news, entities, suggestions, spelling, visual, and local.
+
+    .PARAMETER ApiKey
+    The API key for authenticating with the Bing Search API. 
+    If not specified, the function will use the value of the $BingSearchApiKey variable.
+
+    .PARAMETER ResultsCount
+    The number of search results to return. If not specified, 
+    the default number of results defined by the API will be returned.
+
+    .PARAMETER NSFW
+    A switch to include Not Safe For Work (NSFW) content in the search results. 
+    If not specified, NSFW content will be excluded.
+
+    .PARAMETER Market
+    The geographic region to which the result data is localized. 
+
+    .EXAMPLE
+    Get-BingSearchResults -Query "PowerShell" -Service "web"
+
+    This example performs a web search for the query "PowerShell" and returns unique results.
+
+    .EXAMPLE
+    Get-BingSearchResults -Query "Cats" -Service "images" -ResultsCount 10 -NSFW
+
+    This example performs an image search for the query "Cats", returns 10 unique results, and includes NSFW content.
+
+    .NOTES
+    This function requires an active internet connection and a valid Bing Search API key to function.
+
+    .LINK
+    https://docs.microsoft.com/en-us/azure/cognitive-services/bing-web-search/
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Query,
+        
+        [Parameter(Mandatory)]
+        [ValidateSet(
+            "web",
+            "images",
+            "videos",
+            "news",
+            "entities",
+            "suggestions",
+            "spelling",
+            "visual",
+            "local")]
+        [string]
+        $Service,
+            
+        [Parameter()]
+        [string]
+        $ApiKey = $BingSearchApiKey,
+
+        [Parameter()]
+        [int]
+        $ResultsCount,
+
+        [Parameter()]
+        [switch]
+        $NSFW,
+
+        [Parameter()]
+        [string]
+        $Market = "en-US"
+    )
+  
+    process {
+        # Call the Invoke-BingSearch function to get raw search results
+        Invoke-BingSearch `
+           -Query $Query `
+           -Service $Service `
+           -ApiKey $BingSearchApiKey `
+           -ResultsCount $ResultsCount `
+           -NSFW $NSFW `
+           -Market $Market 
+                | 
+                Select-Object * -Unique
     }
 }
 
@@ -245,7 +347,7 @@ function Get-BingSearchResults {
 
 
 function Open-BingSearchResult {
-<#
+    <#
     .SYNOPSIS
     Opens the content URL from a Bing search result in the default web browser.
 
@@ -273,7 +375,7 @@ function Open-BingSearchResult {
 
     .LINK
     https://docs.microsoft.com/en-us/powershell/scripting/learn/deep-dives/everything-about-arrays?view=powershell-7.1
-#>
+    #>
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipeline)]
