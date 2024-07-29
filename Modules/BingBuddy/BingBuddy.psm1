@@ -182,14 +182,13 @@ function Get-BingSearchResults {
         $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
 
         # Process the response based on the service type
-        $results = switch -Regex ($Service) {
+        switch -Regex ($Service) {
             "web"         { $response.webPages.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "images"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "videos"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "news"        { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "entities"    { $response.entities.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "spelling"    { $response.flaggedTokens       | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "local"       { $response.localbusiness.value | ForEach-Object { Add-ServiceProperty $_ $Service } }
             "suggestions" { 
                             $response.suggestionGroups.searchSuggestions 
                                 | ForEach-Object { Add-ServiceProperty $_ $Service } 
@@ -197,10 +196,7 @@ function Get-BingSearchResults {
             default       { throw "Invalid service path provided." }
         }
 
-        # Output the results with the Service included
-        # $results
-
-        Write-Verbose "url: $url`nresponse: $response"
+        Write-Verbose "`nurl: $url"
 
     }
 
