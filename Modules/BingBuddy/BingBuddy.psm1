@@ -147,15 +147,15 @@ function Invoke-BingSearch {
         $baseUrl = "https://api.bing.microsoft.com/v7.0"
 
         switch ($Service) {
-            "web"      { $endpoint = "/search" }
-            "images"   { $endpoint = "/images/search" }
-            "videos"   { $endpoint = "/videos/search" }
-            "news"     { $endpoint = "/news/search" }
-            "entities" { $endpoint = "/entities" }
-            "suggestions"     { $endpoint = "/suggestions" }
-            "spelling" { $endpoint = "/spellcheck" }
-            "local"    { $endpoint = "/localbusiness/search" }
-            default    { throw "Invalid service path provided." }
+            "web"         { $endpoint = "/search" }
+            "images"      { $endpoint = "/images/search" }
+            "videos"      { $endpoint = "/videos/search" }
+            "news"        { $endpoint = "/news/search" }
+            "entities"    { $endpoint = "/entities" }
+            "suggestions" { $endpoint = "/suggestions" }
+            "spelling"    { $endpoint = "/spellcheck" }
+            "local"       { $endpoint = "/localbusiness/search" }
+            default       { throw "Invalid service path provided." }
         }
 
         Write-Verbose("`nservice path: $Service`nendpoint: $endpoint")
