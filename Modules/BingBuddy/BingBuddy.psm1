@@ -193,7 +193,7 @@ function Invoke-BingSearch {
             "suggestions" { 
                             $response.suggestionGroups.searchSuggestions 
                                 | ForEach-Object { Add-ServiceProperty $_ $Service } 
-                            }
+                          }
             default       { throw "Invalid service path provided." }
         }
 
