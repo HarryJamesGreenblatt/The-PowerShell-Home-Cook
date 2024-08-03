@@ -7,10 +7,12 @@
     BingBuddy is designed to simplify the process of making various types of searches using the Bing Search API. 
     It includes functions to invoke searches, process results, and open search result URLs in a web browser.
 
-    .FUNCTIONS
+    .FUNCTIONALITY
     - Get-BingSearchResults: Performs a search using the Bing Search API and returns unique results.
     - Invoke-BingSearch: Invokes a Bing Search and returns results based on the specified query and service type.
     - Open-BingSearchResult: Opens the URL from a Bing search result in the default web browser.
+    - Receive-BingNews: Retrieves news articles using the Bing News Search API, optionally filtered by a specific category.
+    - Receive-BingNewsTrendingTopics: Retrieves trending news topics using the Bing Search API.
 
     .EXAMPLE
     # Example of using Get-BingSearchResults
@@ -20,6 +22,14 @@
     # Example of using Open-BingSearchResult
     $results | Open-BingSearchResult
 
+    # Example of using Receive-BingNews
+    $news = Receive-BingNews -Category "Technology" -ApiKey "YourApiKey"
+    $news | Format-Table
+
+    # Example of using Receive-BingNewsTrendingTopics
+    $trendingTopics = Receive-BingNewsTrendingTopics -ApiKey "YourApiKey"
+    $trendingTopics | Format-Table
+
     .NOTES
     To use the BingBuddy module, you must have a valid Bing Search API key. 
     Ensure that you handle the API key securely and do not expose it in scripts or logs.
@@ -27,6 +37,7 @@
     .LINK
     https://docs.microsoft.com/en-us/azure/cognitive-services/bing-web-search/
 #>
+
 
 
 function Invoke-BingSearch {
@@ -193,7 +204,7 @@ function Invoke-BingSearch {
             "suggestions" { 
                             $response.suggestionGroups.searchSuggestions 
                                 | ForEach-Object { Add-ServiceProperty $_ $Service } 
-                          }
+                            }
             default       { throw "Invalid service path provided." }
         }
 
@@ -242,7 +253,6 @@ function Invoke-BingSearch {
 
     }
 }
-
 
 
 function Get-BingSearchResults {
@@ -344,6 +354,183 @@ function Get-BingSearchResults {
 }
 
 
+function Receive-BingNewsTrendingTopics {
+    <#
+    .SYNOPSIS
+    Retrieves trending news topics using the Bing Search API.
+
+    .DESCRIPTION
+    This function makes a call to the Bing Search API to retrieve trending news topics.
+
+    .PARAMETER ApiKey
+    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $BingSearchApiKey variable.
+
+    .PARAMETER Market
+    The geographic region to which the result data is localized. 
+
+    .EXAMPLE
+    Receive-BingTrendingTopics
+
+    This example retrieves trending news topics.
+
+    .NOTES
+    This function requires an active internet connection and a valid Bing Search API key to function.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $ApiKey = $BingSearchApiKey,
+
+        [Parameter()]
+        [string]
+        $Market = "en-US"
+    )
+
+    begin {
+        # Validate API Key
+        if (-not $ApiKey) {
+            Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
+        }
+
+        # Create the headers hash using the API key
+        $headers = @{
+            "Ocp-Apim-Subscription-Key" = $ApiKey
+        }
+
+        # Set the endpoint URL
+        $url = "https://api.bing.microsoft.com/v7.0/news/trendingtopics?mkt=$Market"
+    }
+
+    process {
+        # Make the API call
+        $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
+
+        # Return the trending topics
+        return $response.value
+    }
+}
+
+
+function Receive-BingNews {
+    <#
+    .SYNOPSIS
+    Retrieves news articles using the Bing News Search API, optionally filtered by a specific category.
+
+    .DESCRIPTION
+    This function makes a call to the Bing News Search API to retrieve news articles. 
+    If a category is specified, it retrieves news articles for that category. Otherwise, it retrieves general news articles.
+
+    .PARAMETER Category
+    The news category to retrieve articles for. Valid options include:
+    - Business
+    - Entertainment
+    - Health
+    - Politics
+    - Products
+    - Technology
+    - Science
+    - Sports
+    - US
+    - World
+
+    .PARAMETER ApiKey
+    The API key for authenticating with the Bing News Search API. 
+    If not specified, the function will use the value of the $BingSearchApiKey variable.
+
+    .PARAMETER Trending
+    A switch to retrieve trending news topics instead of regular news articles.
+
+    .EXAMPLE
+    Receive-BingNews -Category "Technology" -ApiKey "YourApiKey"
+
+    This example retrieves technology news articles using the specified API key.
+
+    .EXAMPLE
+    Receive-BingNews -Trending -ApiKey "YourApiKey"
+
+    This example retrieves trending news topics using the specified API key.
+
+    .NOTES
+    This function requires an active internet connection and a valid Bing Search API key to function.
+
+    .LINK
+    https://docs.microsoft.com/en-us/azure/cognitive-services/bing-news-search/
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [ValidateSet(
+            "Business",
+            "Entertainment",
+            "Health",
+            "Politics",
+            "Products",
+            "Technology",
+            "Science",
+            "Sports",
+            "US",
+            "World")]
+        [string]
+        $Category,
+        
+        [Parameter()]
+        [string]
+        $ApiKey = $BingSearchApiKey,
+
+        [Parameter()]
+        [string]
+        $Market = "en-US"
+    )
+
+    process {
+
+        if($Trending){
+            Receive-BingNewsTrendingTopics -ApiKey $ApiKey
+        }
+
+        else{
+        
+            # Validate API Key. Exit program if found not to be valid.
+            if (-not $ApiKey) {
+                Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
+            }
+
+            # Create the headers hash using the API key
+            $headers = @{
+                "Ocp-Apim-Subscription-Key" = $ApiKey
+            }
+
+            # Set the base URL for the Bing News Search API
+            $baseUrl = "https://api.bing.microsoft.com/v7.0/news"
+
+            # Construct the request URL
+            $url = $baseUrl
+
+            # Add category to the URL if specified
+            if ($Category) {
+                $url += "?category=$Category"
+            }
+
+            # Construct market parameter to the URL
+            $marketParam = $url.Length -gt $baseUrl.Length ? "&mkt=$Market" : "?mkt=$Market"
+
+            # Add market parameter to the URL
+            $url += $marketParam
+
+            Write-Verbose "`nurl: $url"
+
+            # Make the API call
+            $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
+
+            # Process the response
+            $results = $response.value
+
+            # Return the results
+            $results
+        }
+    }
+}
 
 
 function Open-BingSearchResult {
@@ -378,8 +565,11 @@ function Open-BingSearchResult {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(ValueFromPipeline)]
-        [PSCustomObject]$SearchResult
+        [Parameter(
+            ValueFromPipeline, 
+            Mandatory)]
+        [PSCustomObject]
+        $SearchResult
     )
         
     begin {  
@@ -394,25 +584,32 @@ function Open-BingSearchResult {
             "spelling"     = 'url';
         }
     }
-    
+
     process {
         #Retreive the Service property of the SearchResult parameter 
         $Service = $SearchResult.Service
 
-        # Determine the URL property based on the service type
-        $urlProperty = $urlPropertyMap[$Service]
+        if($Service){
+            # Determine the URL property based on the service type
+            $urlProperty = $urlPropertyMap[$Service]
 
-        # Check if the search result contains the URL property and open it
-        if ($SearchResult.PSObject.Properties.Name -contains $urlProperty) {
-            Start-Process $SearchResult.$urlProperty
-        } else {
-            Write-Error "No URL found in the search result for service type: $Service"
+            # Check if the search result contains the URL property and open it
+            if ($SearchResult.PSObject.Properties.Name -contains $urlProperty) {
+                Start-Process $SearchResult.$urlProperty
+            } else {
+                Write-Error "No URL found in the search result for service type: $Service"
+            }        
         }
+
+        else{
+            Start-Process $SearchResult.url
+        }
+
     }
 }
 
 
-
 Export-ModuleMember -Function `
     Get-BingSearchResults, 
+    Receive-BingNews,
     Open-BingSearchResult
