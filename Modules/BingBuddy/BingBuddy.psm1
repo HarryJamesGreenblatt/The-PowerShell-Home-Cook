@@ -552,8 +552,8 @@ function Open-BingSearchResult {
     The search result object that contains the URL to be opened. 
     This parameter can accept input directly or via the pipeline.
 
-    .PARAMETER TrendSource
-    Specifies which URL property to use when the search result contains both webSearchUrl and newsSearchUrl properties.
+    .PARAMETER Source
+    Specifies which URL property to use when the search result contains either webSearchUrl or newsSearchUrl properties.
 
     .EXAMPLE
     $bingSearchResult | Open-BingSearchResult
@@ -587,11 +587,11 @@ function Open-BingSearchResult {
 
         [Parameter()]
         [ValidateSet(
-            "webSearchUrl",
-            "newsSearchUrl"
+            "web",
+            "news"
         )]
         [string]
-        $TrendSource
+        $Source
     )
         
     begin {
@@ -634,10 +634,10 @@ function Open-BingSearchResult {
             # Otherwise,
             # Assess wether or not the SearchResult is a Trending Topic,
             # then open the result accordingly
-            switch ($TrendSource) {
+            switch ($Source) {
 
-                webSearchUrl   { Start-Process $SearchResult.webSearchUrl  }
-                newsSearchUrl  { Start-Process $SearchResult.newsSearchUrl }
+                web   { Start-Process $SearchResult.webSearchUrl  }
+                news  { Start-Process $SearchResult.newsSearchUrl }
 
                 Default        {
 
@@ -645,9 +645,11 @@ function Open-BingSearchResult {
                         Start-Process $SearchResult.url   
                     } 
                     else {
+
                         $choices = @("webSearchUrl", "newsSearchUrl")
-                        $selection = $choices | Out-GridView -Title "Select a Trend Source" -PassThru
-                        Write-Output "You selected: $selection"
+                        Write-Host "A Source Selection Menu has been launched, please check your taskbar for a PowerShell icon."
+
+                        $selection = $choices | Out-GridView -Title "Which Source do you want to check?" -PassThru
                         Start-Process $SearchResult.$selection           
                     }  
                     
