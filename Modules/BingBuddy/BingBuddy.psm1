@@ -434,12 +434,12 @@ function Receive-BingNews {
     - US
     - World
 
+    .PARAMETER Trending
+    A switch to retrieve trending news topics instead of regular news articles.
+    
     .PARAMETER ApiKey
     The API key for authenticating with the Bing News Search API. 
     If not specified, the function will use the value of the $BingSearchApiKey variable.
-
-    .PARAMETER Trending
-    A switch to retrieve trending news topics instead of regular news articles.
 
     .EXAMPLE
     Receive-BingNews -Category "Technology" -ApiKey "YourApiKey"
@@ -474,6 +474,10 @@ function Receive-BingNews {
         [string]
         $Category,
         
+        [Parameter()]
+        [switch]
+        $Trending,
+
         [Parameter()]
         [string]
         $ApiKey = $BingSearchApiKey,
