@@ -545,10 +545,15 @@ function Open-BingSearchResult {
     .DESCRIPTION
     This function takes a single record from the output of Get-BingSearchResults, 
     which should contain a URL property, and opens it in the default web browser using Start-Process.
+    It also handles the edge case where the -Trending switch is provided to the Receive-BingNews function,
+    which may return objects with both webSearchUrl and newsSearchUrl properties.
 
     .PARAMETER SearchResult
     The search result object that contains the URL to be opened. 
     This parameter can accept input directly or via the pipeline.
+
+    .PARAMETER TrendSource
+    Specifies which URL property to use when the search result contains both webSearchUrl and newsSearchUrl properties.
 
     .EXAMPLE
     $bingSearchResult | Open-BingSearchResult
@@ -559,6 +564,11 @@ function Open-BingSearchResult {
     Open-BingSearchResult -SearchResult $bingSearchResult
 
     This example opens the content URL from the specified Bing search result in the default web browser.
+
+    .EXAMPLE
+    Receive-BingNews -Trending -ApiKey "YourApiKey" | Open-BingSearchResult -TrendSource "webSearchUrl"
+
+    This example retrieves trending news topics and opens the web search URL in the default web browser.
 
     .NOTES
     Ensure that the search result object contains a valid URL property. 
@@ -573,10 +583,19 @@ function Open-BingSearchResult {
             ValueFromPipeline, 
             Mandatory)]
         [PSCustomObject]
-        $SearchResult
+        $SearchResult,
+
+        [Parameter()]
+        [ValidateSet(
+            "webSearchUrl",
+            "newsSearchUrl"
+        )]
+        [string]
+        $TrendSource
     )
         
-    begin {  
+    begin {
+        
         # Define a hashtable mapping the service types to their URL properties
         $urlPropertyMap = @{
             "web"          = 'url';
@@ -587,13 +606,17 @@ function Open-BingSearchResult {
             "suggestions"  = 'url';
             "spelling"     = 'url';
         }
+
     }
 
     process {
-        #Retreive the Service property of the SearchResult parameter 
+
+        # Retreive the Service property of the SearchResult parameter,
+        # should any such Service property exist.
         $Service = $SearchResult.Service
 
         if($Service){
+
             # Determine the URL property based on the service type
             $urlProperty = $urlPropertyMap[$Service]
 
@@ -602,11 +625,34 @@ function Open-BingSearchResult {
                 Start-Process $SearchResult.$urlProperty
             } else {
                 Write-Error "No URL found in the search result for service type: $Service"
-            }        
+            }     
+            
         }
 
         else{
-            Start-Process $SearchResult.url
+
+            # Otherwise,
+            # Assess wether or not the SearchResult is a Trending Topic,
+            # then open the result accordingly
+            switch ($TrendSource) {
+
+                webSearchUrl   { Start-Process $SearchResult.webSearchUrl  }
+                newsSearchUrl  { Start-Process $SearchResult.newsSearchUrl }
+
+                Default        {
+
+                    if ($SearchResult.PSObject.Properties.Name -ccontains "url") {
+                        Start-Process $SearchResult.url   
+                    } 
+                    else {
+                        $choices = @("webSearchUrl", "newsSearchUrl")
+                        $selection = $choices | Out-GridView -Title "Select a Trend Source" -PassThru
+                        Write-Output "You selected: $selection"
+                        Start-Process $SearchResult.$selection           
+                    }  
+                    
+                }
+            }           
         }
 
     }
