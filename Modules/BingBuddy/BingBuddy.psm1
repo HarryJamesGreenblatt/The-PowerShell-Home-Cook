@@ -436,6 +436,9 @@ function Receive-BingNews {
     The API key for authenticating with the Bing News Search API. 
     If not specified, the function will use the value of the $BingSearchApiKey variable.
 
+    .PARAMETER Market
+    The geographic region to which the result data is localized. 
+
     .EXAMPLE
     Receive-BingNews -Category "Technology" -ApiKey "YourApiKey"
 
