@@ -490,7 +490,7 @@ function Receive-BingNews {
     process {
 
         if($Trending){
-            Receive-BingNewsTrendingTopics -ApiKey $ApiKey
+            Receive-BingNewsTrendingTopics -ApiKey $ApiKey -Market $Market
         }
 
         else{
