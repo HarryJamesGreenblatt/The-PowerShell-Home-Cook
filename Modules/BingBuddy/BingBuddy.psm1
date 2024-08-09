@@ -97,9 +97,7 @@ function Invoke-BingSearch {
             "news",
             "entities",
             "suggestions",
-            "spelling",
-            "visual",
-            "local")]
+            "spelling")]
         [string]
         $Service,
             
@@ -315,9 +313,7 @@ function Get-BingSearchResults {
             "news",
             "entities",
             "suggestions",
-            "spelling",
-            "visual",
-            "local")]
+            "spelling")]
         [string]
         $Service,
             
@@ -601,7 +597,7 @@ function Open-BingSearchResult {
             "images"       = 'contentUrl';
             "videos"       = 'contentUrl';
             "news"         = 'url';
-            "entities"     = 'url';
+            "entities"     = 'webSearchUrl';
             "suggestions"  = 'url';
             "spelling"     = 'url';
         }
