@@ -165,7 +165,6 @@ function Invoke-BingSearch {
             "entities"    { $endpoint = "/entities" }
             "suggestions" { $endpoint = "/suggestions" }
             "spelling"    { $endpoint = "/spellcheck" }
-            "local"       { $endpoint = "/localbusiness/search" }
             default       { throw "Invalid service path provided." }
         }
 
@@ -228,7 +227,7 @@ function Invoke-BingSearch {
         $expectedProperty = $responsePropertyMap[$Service]
 
 
-        Write-Verbose "the response is $response "
+        Write-Verbose "the response is $response"
 
 
         # Check if the response service was 'suggestion' and return its value if so
