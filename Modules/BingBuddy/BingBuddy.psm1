@@ -252,6 +252,117 @@ function Invoke-BingSearch {
 }
 
 
+function Receive-BingNewsTrendingTopics {
+    <#
+    .SYNOPSIS
+    Retrieves trending news topics using the Bing Search API.
+
+    .DESCRIPTION
+    This function makes a call to the Bing Search API to retrieve trending news topics.
+
+    .PARAMETER ApiKey
+    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $BingSearchApiKey variable.
+
+    .PARAMETER Market
+    The geographic region to which the result data is localized. 
+
+    .EXAMPLE
+    Receive-BingTrendingTopics
+
+    This example retrieves trending news topics.
+
+    .NOTES
+    This function requires an active internet connection and a valid Bing Search API key to function.
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string]
+        $ApiKey = $BingSearchApiKey,
+
+        [Parameter()]
+        [string]
+        $Market = "en-US"
+    )
+
+    begin {
+
+        # Validate API Key
+        if (-not $ApiKey) {
+            Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
+        }
+
+        # Create the headers hash using the API key
+        $headers = @{
+            "Ocp-Apim-Subscription-Key" = $ApiKey
+        }
+
+        # Set the endpoint URL
+        $url = "https://api.bing.microsoft.com/v7.0/news/trendingtopics?mkt=$Market"
+    }
+
+    process {
+        # Make the API call
+        $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
+
+        # Return the trending topics
+        return $response.value
+    }
+}
+
+
+function Get-MarketCode {
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet(
+            "United States",
+            "United Kingdom",
+            "Canada",
+            "Australia",
+            "France",
+            "Germany",
+            "Spain",
+            "Italy",
+            "Brazil",
+            "Mexico",
+            "India",
+            "China",
+            "Japan",
+            "Russia",
+            "Finland",
+            "Denmark",
+            "Worldwide"
+        )]
+        [string]
+        $Market
+    )
+
+    # Map of country/region names to market codes
+    $marketMap = @{
+        "United States"  = "en-US"
+        "United Kingdom" = "en-GB"
+        "Canada"         = "en-CA"
+        "Australia"      = "en-AU"
+        "France"         = "fr-FR"
+        "Germany"        = "de-DE"
+        "Spain"          = "es-ES"
+        "Italy"          = "it-IT"
+        "Brazil"         = "pt-BR"
+        "Mexico"         = "es-MX"
+        "India"          = "en-IN"
+        "China"          = "zh-CN"
+        "Japan"          = "ja-JP"
+        "Russia"         = "ru-RU"
+        "Finland"        = "fi-FI"
+        "Denmark"        = "da-DK"
+        "Worldwide"      = "en-WW"
+    }
+
+    # Convert the selected country/region name to its corresponding market code
+    return $marketMap[$Market]
+}
+
+
 function Get-BingSearchResults {
     <#
     .SYNOPSIS
@@ -330,9 +441,33 @@ function Get-BingSearchResults {
         $NSFW,
 
         [Parameter()]
+        [ValidateSet(
+            "United States",
+            "United Kingdom",
+            "Canada",
+            "Australia",
+            "France",
+            "Germany",
+            "Spain",
+            "Italy",
+            "Brazil",
+            "Mexico",
+            "India",
+            "China",
+            "Japan",
+            "Russia",
+            "Finland",
+            "Denmark",
+            "Worldwide"
+        )]
         [string]
-        $Market = "en-US"
+        $Market = "United States"
     )
+
+    begin {
+        # Convert the selected country/region name to its corresponding market code
+        $marketCode = Get-MarketCode -Market $Market
+    }
   
     process {
         # Call the Invoke-BingSearch function to get raw search results
@@ -342,67 +477,9 @@ function Get-BingSearchResults {
            -ApiKey $BingSearchApiKey `
            -ResultsCount $ResultsCount `
            -NSFW $NSFW `
-           -Market $Market 
+           -Market $marketCode 
                 | 
                 Select-Object * -Unique
-    }
-}
-
-
-function Receive-BingNewsTrendingTopics {
-    <#
-    .SYNOPSIS
-    Retrieves trending news topics using the Bing Search API.
-
-    .DESCRIPTION
-    This function makes a call to the Bing Search API to retrieve trending news topics.
-
-    .PARAMETER ApiKey
-    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $BingSearchApiKey variable.
-
-    .PARAMETER Market
-    The geographic region to which the result data is localized. 
-
-    .EXAMPLE
-    Receive-BingTrendingTopics
-
-    This example retrieves trending news topics.
-
-    .NOTES
-    This function requires an active internet connection and a valid Bing Search API key to function.
-    #>
-    [CmdletBinding()]
-    param (
-        [Parameter()]
-        [string]
-        $ApiKey = $BingSearchApiKey,
-
-        [Parameter()]
-        [string]
-        $Market = "en-US"
-    )
-
-    begin {
-        # Validate API Key
-        if (-not $ApiKey) {
-            Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
-        }
-
-        # Create the headers hash using the API key
-        $headers = @{
-            "Ocp-Apim-Subscription-Key" = $ApiKey
-        }
-
-        # Set the endpoint URL
-        $url = "https://api.bing.microsoft.com/v7.0/news/trendingtopics?mkt=$Market"
-    }
-
-    process {
-        # Make the API call
-        $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
-
-        # Return the trending topics
-        return $response.value
     }
 }
 
@@ -481,14 +558,38 @@ function Receive-BingNews {
         $ApiKey = $BingSearchApiKey,
 
         [Parameter()]
+        [ValidateSet(
+            "United States",
+            "United Kingdom",
+            "Canada",
+            "Australia",
+            "France",
+            "Germany",
+            "Spain",
+            "Italy",
+            "Brazil",
+            "Mexico",
+            "India",
+            "China",
+            "Japan",
+            "Russia",
+            "Finland",
+            "Denmark",
+            "Worldwide"
+        )]
         [string]
-        $Market = "en-US"
+        $Market = "United States"
     )
+
+    begin {
+        # Convert the selected country/region name to its corresponding market code
+        $marketCode = Get-MarketCode -Market $Market
+    }
 
     process {
 
         if($Trending){
-            Receive-BingNewsTrendingTopics -ApiKey $ApiKey -Market $Market
+            Receive-BingNewsTrendingTopics -ApiKey $ApiKey -Market $marketCode
         }
 
         else{
@@ -515,7 +616,7 @@ function Receive-BingNews {
             }
 
             # Construct market parameter to the URL
-            $marketParam = $url.Length -gt $baseUrl.Length ? "&mkt=$Market" : "?mkt=$Market"
+            $marketParam = $url.Length -gt $baseUrl.Length ? "&mkt=$marketCode" : "?mkt=$marketCode"
 
             # Add market parameter to the URL
             $url += $marketParam
@@ -657,6 +758,7 @@ function Open-BingSearchResult {
 
     }
 }
+
 
 
 Export-ModuleMember -Function `
