@@ -56,7 +56,7 @@ function Invoke-BingSearch {
     The type of search service to use. Valid options are web, image, video, news, custom, entity, auto, spell, visual, and local.
 
     .PARAMETER ApiKey
-    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $BingSearchApiKey variable.
+    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $env:BingSearchApiKey variable.
 
     .PARAMETER ResultsCount
     The number of search results to return. If not specified, the default number of results defined by the API will be returned.
@@ -103,7 +103,7 @@ function Invoke-BingSearch {
             
         [Parameter()]
         [string]
-        $ApiKey = $BingSearchApiKey,
+        $ApiKey = $env:BingSearchApiKey,
 
         [Parameter()]
         [int]
@@ -261,7 +261,7 @@ function Receive-BingNewsTrendingTopics {
     This function makes a call to the Bing Search API to retrieve trending news topics.
 
     .PARAMETER ApiKey
-    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $BingSearchApiKey variable.
+    The API key for authenticating with the Bing Search API. If not specified, the function will use the value of the $env:BingSearchApiKey variable.
 
     .PARAMETER Market
     The geographic region to which the result data is localized. 
@@ -278,7 +278,7 @@ function Receive-BingNewsTrendingTopics {
     param (
         [Parameter()]
         [string]
-        $ApiKey = $BingSearchApiKey,
+        $ApiKey = $env:BingSearchApiKey,
 
         [Parameter()]
         [string]
@@ -381,7 +381,7 @@ function Get-BingSearchResults {
 
     .PARAMETER ApiKey
     The API key for authenticating with the Bing Search API. 
-    If not specified, the function will use the value of the $BingSearchApiKey variable.
+    If not specified, the function will use the value of the $env:BingSearchApiKey variable.
 
     .PARAMETER ResultsCount
     The number of search results to return. If not specified, 
@@ -430,7 +430,7 @@ function Get-BingSearchResults {
             
         [Parameter()]
         [string]
-        $ApiKey = $BingSearchApiKey,
+        $ApiKey = $env:BingSearchApiKey,
 
         [Parameter()]
         [int]
@@ -474,7 +474,7 @@ function Get-BingSearchResults {
         Invoke-BingSearch `
            -Query $Query `
            -Service $Service `
-           -ApiKey $BingSearchApiKey `
+           -ApiKey $env:BingSearchApiKey `
            -ResultsCount $ResultsCount `
            -NSFW $NSFW `
            -Market $marketCode 
@@ -511,7 +511,7 @@ function Receive-BingNews {
     
     .PARAMETER ApiKey
     The API key for authenticating with the Bing News Search API. 
-    If not specified, the function will use the value of the $BingSearchApiKey variable.
+    If not specified, the function will use the value of the $env:BingSearchApiKey variable.
 
     .PARAMETER Market
     The geographic region to which the result data is localized. 
@@ -555,7 +555,7 @@ function Receive-BingNews {
 
         [Parameter()]
         [string]
-        $ApiKey = $BingSearchApiKey,
+        $ApiKey = $env:BingSearchApiKey,
 
         [Parameter()]
         [ValidateSet(
