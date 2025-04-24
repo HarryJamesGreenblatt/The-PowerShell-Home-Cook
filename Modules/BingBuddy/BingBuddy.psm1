@@ -91,13 +91,13 @@ function Invoke-BingSearch {
         
         [Parameter(Mandatory)]
         [ValidateSet(
-            "web",
-            "images",
-            "videos",
-            "news",
-            "entities",
-            "suggestions",
-            "spelling")]
+            "Web",
+            "Images",
+            "Videos",
+            "News",
+            "Entities",
+            "Suggestions",
+            "Spelling")]
         [string]
         $Service,
             
@@ -156,13 +156,13 @@ function Invoke-BingSearch {
         $baseUrl = "https://api.bing.microsoft.com/v7.0"
 
         switch ($Service) {
-            "web"         { $endpoint = "/search" }
-            "images"      { $endpoint = "/images/search" }
-            "videos"      { $endpoint = "/videos/search" }
-            "news"        { $endpoint = "/news/search" }
-            "entities"    { $endpoint = "/entities" }
-            "suggestions" { $endpoint = "/suggestions" }
-            "spelling"    { $endpoint = "/spellcheck" }
+            "Web"         { $endpoint = "/search" }
+            "Images"      { $endpoint = "/images/search" }
+            "Videos"      { $endpoint = "/videos/search" }
+            "News"        { $endpoint = "/news/search" }
+            "Entities"    { $endpoint = "/entities" }
+            "Suggestions" { $endpoint = "/suggestions" }
+            "Spelling"    { $endpoint = "/spellcheck" }
             default       { throw "Invalid service path provided." }
         }
 
@@ -192,13 +192,13 @@ function Invoke-BingSearch {
 
         # Process the response based on the service type
         switch -Regex ($Service) {
-            "web"         { $response.webPages.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "images"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "videos"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "news"        { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "entities"    { $response.entities.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "spelling"    { $response.flaggedTokens       | ForEach-Object { Add-ServiceProperty $_ $Service } }
-            "suggestions" { 
+            "Web"         { $response.webPages.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "Images"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "Videos"      { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "News"        { $response.value               | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "Entities"    { $response.entities.value      | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "Spelling"    { $response.flaggedTokens       | ForEach-Object { Add-ServiceProperty $_ $Service } }
+            "Suggestions" { 
                             $response.suggestionGroups.searchSuggestions 
                                 | ForEach-Object { Add-ServiceProperty $_ $Service } 
                             }
@@ -212,13 +212,13 @@ function Invoke-BingSearch {
     end {
         # Define a hashtable mapping the service paths to their expected response properties
         $responsePropertyMap = @{
-            "web"                 = 'webPages';
-            "images"              = 'images';
-            "videos"              = 'videos';
-            "news"                = 'news';
-            "entities"            = 'entities';
-            "suggestions"         = 'suggestions';
-            "spelling"            = 'flaggedTokens';
+            "Web"                 = 'webPages';
+            "Images"              = 'images';
+            "Videos"              = 'videos';
+            "News"                = 'news';
+            "Entities"            = 'entities';
+            "Suggestions"         = 'suggestions';
+            "Spelling"            = 'flaggedTokens';
         }
 
         # Determine the expected response property based on the service path
@@ -418,13 +418,13 @@ function Get-BingSearchResults {
         
         [Parameter(Mandatory)]
         [ValidateSet(
-            "web",
-            "images",
-            "videos",
-            "news",
-            "entities",
-            "suggestions",
-            "spelling")]
+            "Web",
+            "Images",
+            "Videos",
+            "News",
+            "Entities",
+            "Suggestions",
+            "Spelling")]
         [string]
         $Service,
             
@@ -686,8 +686,8 @@ function Open-BingSearchResult {
 
         [Parameter()]
         [ValidateSet(
-            "web",
-            "news"
+            "Web",
+            "News"
         )]
         [string]
         $Source
@@ -697,13 +697,13 @@ function Open-BingSearchResult {
         
         # Define a hashtable mapping the service types to their URL properties
         $urlPropertyMap = @{
-            "web"          = 'url';
-            "images"       = 'contentUrl';
-            "videos"       = 'contentUrl';
-            "news"         = 'url';
-            "entities"     = 'webSearchUrl';
-            "suggestions"  = 'url';
-            "spelling"     = 'url';
+            "Web"          = 'url';
+            "Images"       = 'contentUrl';
+            "Videos"       = 'contentUrl';
+            "News"         = 'url';
+            "Entities"     = 'webSearchUrl';
+            "Suggestions"  = 'url';
+            "Spelling"     = 'url';
         }
 
     }
@@ -735,8 +735,8 @@ function Open-BingSearchResult {
             # then open the result accordingly
             switch ($Source) {
 
-                web   { Start-Process $SearchResult.webSearchUrl  }
-                news  { Start-Process $SearchResult.newsSearchUrl }
+                Web   { Start-Process $SearchResult.webSearchUrl  }
+                News  { Start-Process $SearchResult.newsSearchUrl }
 
                 Default        {
 
