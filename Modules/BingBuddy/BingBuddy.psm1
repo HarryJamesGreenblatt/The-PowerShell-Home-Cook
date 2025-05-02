@@ -885,7 +885,7 @@ function Receive-BingNews {
                                 $enhancedFilter = switch ($filterValue) {
                                     "Golf" { "Golf|PGA|Masters|US Open|British Open|Open Championship|golfer" }
                                     "MLB" { "MLB|Baseball|Major League Baseball|Yankees|Red Sox|Dodgers|Astros" }
-                                    "NBA" { "NBA|Basketball|Lakers|Celtics|Bulls|Warriors|Lebron|Jordan" }
+                                    "NBA" { "NBA|Basketball|Lakers|Celtics|Bulls|Warriors|Lebron|Jordan|Knicks|Clippers|Nuggets|Heat|Bucks|Suns|76ers|Mavericks|Nets" }
                                     "NFL" { "NFL|Football|Cowboys|Patriots|Chiefs|Eagles|Quarterback|TD|Super Bowl" }
                                     "NHL" { "NHL|Hockey|Stanley Cup|Bruins|Rangers|Maple Leafs|Oilers|Penguins" }
                                     "Soccer" { "Soccer|Football|FIFA|Premier League|La Liga|MLS|Champions League|World Cup|Manchester|Barcelona|Real Madrid" }
