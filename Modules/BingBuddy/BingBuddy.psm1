@@ -357,7 +357,12 @@ function Get-MarketCode {
     }
 
     # Convert the selected country/region name to its corresponding market code
-    return $marketMap[$Market]
+    if ($marketMap.ContainsKey($Market)) {
+        return $marketMap[$Market]
+    } else {
+        Write-Verbose "Market '$Market' not found in explicit map, returning input value."
+        return $Market
+    }
 }
 
 function Get-MarketCategoryInfo {
@@ -688,8 +693,20 @@ function Receive-BingNews {
     param (
         [Parameter()]
         [ValidateSet(
+            "United States",
+            "United Kingdom",
+            "Canada",
+            "China",
+            "Japan",
+            "India"
+        )]
+        [string]
+        $Market = "United States",
+        
+        [Parameter()]
+        [ValidateSet(
             # US categories (offering the most options for tab completion)
-            "Business", "Entertainment", "Health", "Politics", "ScienceAndTechnology",
+            "Business", "Entertainment", "Health", "Politics", "Products", "ScienceAndTechnology", # Added Products
             "Sports", "US", "World",
             # Entertainment subcategories
             "Entertainment_MovieAndTV", "Entertainment_Music",
@@ -712,30 +729,7 @@ function Receive-BingNews {
 
         [Parameter()]
         [string]
-        $ApiKey = $env:BingSearchApiKey,
-
-        [Parameter()]
-        [ValidateSet(
-            "United States",
-            "United Kingdom",
-            "Canada",
-            "Australia",
-            "France",
-            "Germany",
-            "Spain",
-            "Italy",
-            "Brazil",
-            "Mexico",
-            "India",
-            "China",
-            "Japan",
-            "Russia",
-            "Finland",
-            "Denmark",
-            "Worldwide"
-        )]
-        [string]
-        $Market = "United States"
+        $ApiKey = $env:BingSearchApiKey
     )
 
     begin {
