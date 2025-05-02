@@ -38,8 +38,6 @@
     https://docs.microsoft.com/en-us/azure/cognitive-services/bing-web-search/
 #>
 
-
-
 function Invoke-BingSearch {
     <#
     .SYNOPSIS
@@ -362,6 +360,159 @@ function Get-MarketCode {
     return $marketMap[$Market]
 }
 
+function Get-MarketCategoryInfo {
+    <#
+    .SYNOPSIS
+    Returns information about available categories for a specific market.
+
+    .DESCRIPTION
+    This function provides information about the news categories available for a given market code.
+    Different markets support different sets of news categories based on Bing's implementation.
+
+    .PARAMETER MarketCode
+    The market code to get category information for (e.g., "en-US", "zh-CN").
+
+    .EXAMPLE
+    Get-MarketCategoryInfo -MarketCode "en-US"
+
+    .NOTES
+    Reference: https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters#news-categories-by-market
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $MarketCode
+    )
+
+    # Comprehensive mapping of market codes to their supported categories
+    # Based on https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters#news-categories-by-market
+    $marketCategoryMap = @{
+        # United States (English)
+        "en-US" = @{
+            "DisplayName" = "United States (English)"
+            "Categories" = @(
+                "Business", "Entertainment", "Health", "Politics", "ScienceAndTechnology",
+                "Sports", "US", "World"
+            )
+            "Subcategories" = @{
+                "Entertainment" = @("Entertainment_MovieAndTV", "Entertainment_Music") # Added Entertainment subcategories
+                "ScienceAndTechnology" = @("Technology", "Science") # Added ScienceAndTechnology subcategories
+                "Sports" = @("Sports_Golf", "Sports_MLB", "Sports_NBA", "Sports_NFL", "Sports_NHL", "Sports_Soccer", "Sports_Tennis", "Sports_CFB", "Sports_CBB")
+                "US" = @("US_Northeast", "US_South", "US_Midwest", "US_West")
+                "World" = @("World_Africa", "World_Americas", "World_Asia", "World_Europe", "World_MiddleEast")
+            }
+        }
+        # United Kingdom (English)
+        "en-GB" = @{
+            "DisplayName" = "United Kingdom (English)"
+            "Categories" = @(
+                "Business", "Entertainment", "Health", "Politics", "ScienceAndTechnology", 
+                "Sports", "UK", "World"
+            )
+        }
+        # Canada (English)
+        "en-CA" = @{
+            "DisplayName" = "Canada (English)"
+            "Categories" = @(
+                "Business", "Canada", "Entertainment", "LifeStyle", "Politics", 
+                "ScienceAndTechnology", "Sports", "World"
+            )
+        }
+        # China (Chinese)
+        "zh-CN" = @{
+            "DisplayName" = "China (Chinese)"
+            "Categories" = @(
+                "Auto", "Business", "China", "Education", "Entertainment", "Military",
+                "RealEstate", "ScienceAndTechnology", "Society", "Sports", "World"
+            )
+        }
+        # Japan (Japanese)
+        "ja-JP" = @{
+            "DisplayName" = "Japan (Japanese)"
+            "Categories" = @(
+                "Business", "Entertainment", "Japan", "LifeStyle", "Politics",
+                "ScienceAndTechnology", "Sports", "World"
+            )
+        }
+        # India (English)
+        "en-IN" = @{
+            "DisplayName" = "India (English)"
+            "Categories" = @(
+                "Business", "Entertainment", "India", "LifeStyle", "Politics",
+                "ScienceAndTechnology", "Sports", "World"
+            )
+        }
+        # Default fallback for any other market
+        "default" = @{
+            "DisplayName" = "Global"
+            "Categories" = @(
+                "Business", "Entertainment", "Politics", "ScienceAndTechnology", 
+                "Sports", "World"
+            )
+        }
+    }
+
+    # Return the category info for the specified market, or the default if not found
+    if ($marketCategoryMap.ContainsKey($MarketCode)) {
+        return $marketCategoryMap[$MarketCode]
+    }
+    else {
+        Write-Verbose "Market code '$MarketCode' not found in category mapping. Using default categories."
+        return $marketCategoryMap["default"]
+    }
+}
+
+function Test-CategoryForMarket {
+    <#
+    .SYNOPSIS
+    Tests if a category is valid for a specific market.
+
+    .DESCRIPTION
+    This function checks if a specified category is supported for a given market.
+    It helps ensure that users only specify valid categories for their chosen market.
+
+    .PARAMETER Category
+    The category to test.
+
+    .PARAMETER MarketCode
+    The market code to check against (e.g., "en-US", "zh-CN").
+
+    .EXAMPLE
+    Test-CategoryForMarket -Category "RealEstate" -MarketCode "zh-CN"
+
+    .NOTES
+    Reference: https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters#news-categories-by-market
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]
+        $Category,
+        
+        [Parameter(Mandatory)]
+        [string]
+        $MarketCode
+    )
+
+    $marketInfo = Get-MarketCategoryInfo -MarketCode $MarketCode
+    
+    # Check if the category is in the main category list
+    if ($marketInfo.Categories -contains $Category) {
+        return $true
+    }
+    
+    # Check subcategories if available
+    if ($marketInfo.ContainsKey("Subcategories")) {
+        foreach ($subcategoryList in $marketInfo.Subcategories.Values) {
+            if ($subcategoryList -contains $Category) {
+                return $true
+            }
+        }
+    }
+    
+    return $false
+}
 
 function Get-BingSearchResults {
     <#
@@ -492,19 +643,14 @@ function Receive-BingNews {
     .DESCRIPTION
     This function makes a call to the Bing News Search API to retrieve news articles. 
     If a category is specified, it retrieves news articles for that category. Otherwise, it retrieves general news articles.
+    The available categories depend on the selected market.
 
     .PARAMETER Category
-    The news category to retrieve articles for. Valid options include:
-    - Business
-    - Entertainment
-    - Health
-    - Politics
-    - Products
-    - Technology
-    - Science
-    - Sports
-    - US
-    - World
+    The news category to retrieve articles for. Tab completion shows US market categories, but the 
+    actual available categories depend on your chosen market. The function validates if your selected
+    category is available for your chosen market and will suggest alternatives if necessary.
+    
+    Subcategories like US_Midwest, Sports_NFL are handled with client-side filtering for better results.
 
     .PARAMETER Trending
     A switch to retrieve trending news topics instead of regular news articles.
@@ -517,35 +663,46 @@ function Receive-BingNews {
     The geographic region to which the result data is localized. 
 
     .EXAMPLE
-    Receive-BingNews -Category "Technology" -ApiKey "YourApiKey"
+    Receive-BingNews -Category "ScienceAndTechnology" -ApiKey "YourApiKey" -Market "United States"
 
-    This example retrieves technology news articles using the specified API key.
+    This example retrieves technology news articles using the specified API key from the US market.
 
     .EXAMPLE
-    Receive-BingNews -Trending -ApiKey "YourApiKey"
+    Receive-BingNews -Category "US_Midwest" -Market "United States"
 
-    This example retrieves trending news topics using the specified API key.
+    This example retrieves news specific to the Midwest region of the US using client-side filtering.
+
+    .EXAMPLE
+    Receive-BingNews -Trending -ApiKey "YourApiKey" -Market "China"
+
+    This example retrieves trending news topics for the Chinese market using the specified API key.
 
     .NOTES
     This function requires an active internet connection and a valid Bing Search API key to function.
+    Different markets support different categories. See the Microsoft documentation for details.
 
     .LINK
-    https://docs.microsoft.com/en-us/azure/cognitive-services/bing-news-search/
+    https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters#news-categories-by-market
     #>
     [CmdletBinding()]
     param (
         [Parameter()]
         [ValidateSet(
-            "Business",
-            "Entertainment",
-            "Health",
-            "Politics",
-            "Products",
-            "Technology",
-            "Science",
-            "Sports",
-            "US",
-            "World")]
+            # US categories (offering the most options for tab completion)
+            "Business", "Entertainment", "Health", "Politics", "ScienceAndTechnology",
+            "Sports", "US", "World",
+            # Entertainment subcategories
+            "Entertainment_MovieAndTV", "Entertainment_Music",
+            # ScienceAndTechnology subcategories  
+            "Technology", "Science",
+            # Sports subcategories for the US
+            "Sports_Golf", "Sports_MLB", "Sports_NBA", "Sports_NFL", "Sports_NHL", 
+            "Sports_Soccer", "Sports_Tennis", "Sports_CFB", "Sports_CBB",
+            # US regional subcategories
+            "US_Northeast", "US_South", "US_Midwest", "US_West",
+            # World subcategories
+            "World_Africa", "World_Americas", "World_Asia", "World_Europe", "World_MiddleEast"
+        )]
         [string]
         $Category,
         
@@ -584,16 +741,47 @@ function Receive-BingNews {
     begin {
         # Convert the selected country/region name to its corresponding market code
         $marketCode = Get-MarketCode -Market $Market
+        
+        # If a category is specified, validate it against the market's supported categories
+        if ($Category) {
+            $marketInfo = Get-MarketCategoryInfo -MarketCode $marketCode
+            $isValidCategory = Test-CategoryForMarket -Category $Category -MarketCode $marketCode
+            
+            if (-not $isValidCategory) {
+                # Get list of valid categories for this market for the error message
+                $validCategories = $marketInfo.Categories -join ", "
+                
+                Write-Warning "Category '$Category' is not supported for the market '$Market' ($marketCode)."
+                Write-Warning "Valid categories for this market are: $validCategories"
+                
+                # If subcategories exist, provide that information too
+                if ($marketInfo.ContainsKey("Subcategories")) {
+                    foreach ($parentCategory in $marketInfo.Subcategories.Keys) {
+                        $subcats = $marketInfo.Subcategories[$parentCategory] -join ", "
+                        Write-Warning "Subcategories for '$parentCategory': $subcats"
+                    }
+                }
+                
+                # Offer to use a default category instead
+                $defaultCategory = $marketInfo.Categories[0]
+                $prompt = "Would you like to use '$defaultCategory' instead? (Y/N)"
+                $response = Read-Host -Prompt $prompt
+                
+                if ($response -eq "Y" -or $response -eq "y") {
+                    Write-Verbose "Using default category '$defaultCategory' instead."
+                    $Category = $defaultCategory
+                } else {
+                    Write-Error "Please specify a valid category for the selected market." -ErrorAction Stop
+                }
+            }
+        }
     }
 
     process {
-
         if($Trending){
             Receive-BingNewsTrendingTopics -ApiKey $ApiKey -Market $marketCode
         }
-
         else{
-        
             # Validate API Key. Exit program if found not to be valid.
             if (-not $ApiKey) {
                 Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
@@ -610,9 +798,30 @@ function Receive-BingNews {
             # Construct the request URL
             $url = $baseUrl
 
+            # Whether we need client-side filtering
+            $needsFiltering = $false
+            $filterType = ""
+            $filterValue = ""
+
             # Add category to the URL if specified
             if ($Category) {
-                $url += "?category=$Category"
+                # For subcategories, there's a special handling in the API
+                if ($Category -match "_") {
+                    $mainCategory = ($Category -split "_")[0]
+                    $subCategory = ($Category -split "_")[1]
+                    Write-Verbose "Using main category: $mainCategory for subcategory: $Category"
+                    
+                    # Use the main category for the API request
+                    $url += "?category=$mainCategory"
+                    
+                    # Flag that we need to filter results later
+                    $needsFiltering = $true
+                    $filterType = $mainCategory
+                    $filterValue = $subCategory
+                } else {
+                    # Standard category
+                    $url += "?category=$Category"
+                }
             }
 
             # Construct market parameter to the URL
@@ -624,13 +833,173 @@ function Receive-BingNews {
             Write-Verbose "`nurl: $url"
 
             # Make the API call
-            $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
-
-            # Process the response
-            $results = $response.value
-
-            # Return the results
-            $results
+            try {
+                $apiResponse = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
+                
+                # Check if we have any results
+                if ($null -eq $apiResponse.value -or $apiResponse.value.Count -eq 0) {
+                    Write-Warning "No results found for category '$Category' in market '$Market' ($marketCode)."
+                } else {
+                    # Store unfiltered results first
+                    $unfilteredResults = $apiResponse.value
+                    $results = $unfilteredResults
+                    
+                    # Apply client-side filtering if needed (for subcategories)
+                    if ($needsFiltering) {
+                        Write-Verbose "Applying client-side filtering for subcategory: $filterValue"
+                        
+                        # Store the count before filtering
+                        $originalCount = $results.Count
+                        
+                        # Apply client-side filtering based on the subcategory
+                        switch ($filterType) {
+                            "US" {
+                                switch ($filterValue) {
+                                    "Northeast" { 
+                                        $filter = "New York|Boston|Philadelphia|Maine|Vermont|Connecticut|Massachusetts|Rhode Island|New Hampshire|NY|NYC|New England" 
+                                    }
+                                    "South" { 
+                                        $filter = "Atlanta|Miami|Texas|Florida|Louisiana|Georgia|Alabama|Mississippi|Tennessee|Kentucky|Carolina|SC|NC|GA|FL|TX|VA|TN|AR|OK" 
+                                    }
+                                    "Midwest" { 
+                                        $filter = "Chicago|Detroit|Ohio|Indiana|Illinois|Michigan|Wisconsin|Minnesota|Iowa|Missouri|Minneapolis|Cleveland|Cincinnati|St Louis|Kansas City|OH|MI|IL|IN|WI|MN|IA|MO|KS|NE|ND|SD" 
+                                    }
+                                    "West" { 
+                                        $filter = "California|Los Angeles|San Francisco|Seattle|Oregon|Washington|Colorado|Nevada|Arizona|Utah|Portland|Denver|Phoenix|Las Vegas|San Diego|LA|CA|OR|WA|CO|NV|AZ|UT|ID|MT|WY|NM|HI|AK" 
+                                    }
+                                    default { $filter = $filterValue }
+                                }
+                                
+                                Write-Verbose "Using regional filter: $filter"
+                                $originalCount = $results.Count
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $filter -or 
+                                    $_.description -match $filter -or
+                                    $_.provider.name -match $filter
+                                }
+                                
+                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                            }
+                            "Sports" {
+                                $enhancedFilter = switch ($filterValue) {
+                                    "Golf" { "Golf|PGA|Masters|US Open|British Open|Open Championship|golfer" }
+                                    "MLB" { "MLB|Baseball|Major League Baseball|Yankees|Red Sox|Dodgers|Astros" }
+                                    "NBA" { "NBA|Basketball|Lakers|Celtics|Bulls|Warriors|Lebron|Jordan" }
+                                    "NFL" { "NFL|Football|Cowboys|Patriots|Chiefs|Eagles|Quarterback|TD|Super Bowl" }
+                                    "NHL" { "NHL|Hockey|Stanley Cup|Bruins|Rangers|Maple Leafs|Oilers|Penguins" }
+                                    "Soccer" { "Soccer|Football|FIFA|Premier League|La Liga|MLS|Champions League|World Cup|Manchester|Barcelona|Real Madrid" }
+                                    "Tennis" { "Tennis|Wimbledon|US Open|French Open|Australian Open|Grand Slam" }
+                                    "CFB" { "College Football|NCAA|CFB|Alabama|Ohio State|Michigan|Clemson|Georgia" }
+                                    "CBB" { "College Basketball|NCAA|March Madness|Duke|Kentucky|Kansas|North Carolina" }
+                                    default { $filterValue }
+                                }
+                                
+                                Write-Verbose "Using sports filter: $enhancedFilter"
+                                $originalCount = $results.Count
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $enhancedFilter -or 
+                                    $_.description -match $enhancedFilter
+                                }
+                                
+                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                            }
+                            "World" {
+                                switch ($filterValue) {
+                                    "Africa" { 
+                                        $filter = "Africa|Nigeria|Kenya|South Africa|Egypt|Ethiopia|Ghana|Morocco|Algeria|Tunisia|Libya|Sudan|Zimbabwe|Uganda|Tanzania" 
+                                    }
+                                    "Americas" { 
+                                        $filter = "Canada|Mexico|Brazil|Argentina|Latin America|South America|Colombia|Peru|Chile|Cuba|Venezuela|Caribbean|Panama" 
+                                    }
+                                    "Asia" { 
+                                        $filter = "China|Japan|India|Korea|Asia|Taiwan|Philippines|Indonesia|Vietnam|Thailand|Singapore|Malaysia|Pakistan|Bangladesh" 
+                                    }
+                                    "Europe" { 
+                                        $filter = "Europe|UK|France|Germany|Italy|Spain|Russia|England|Scotland|Ireland|Poland|Ukraine|Greece|Sweden|Norway|Finland|Denmark|Switzerland|Austria|Netherlands|Belgium" 
+                                    }
+                                    "MiddleEast" { 
+                                        $filter = "Middle East|Israel|Iran|Saudi|UAE|Syria|Iraq|Turkey|Qatar|Dubai|Lebanon|Jordan|Yemen|Oman|Kuwait|Bahrain" 
+                                    }
+                                    default { $filter = $filterValue }
+                                }
+                                
+                                Write-Verbose "Using world region filter: $filter"
+                                $originalCount = $results.Count
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $filter -or 
+                                    $_.description -match $filter
+                                }
+                                
+                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                            }
+                            "Entertainment" {
+                                switch ($filterValue) {
+                                    "MovieAndTV" { 
+                                        $filter = "Movie|Film|Cinema|Hollywood|TV|Television|Series|Show|Actor|Actress|Director|Netflix|Hulu|HBO|Disney\+|Amazon Prime|Streaming" 
+                                    }
+                                    "Music" { 
+                                        $filter = "Music|Song|Album|Concert|Tour|Singer|Artist|Band|Grammy|Billboard|Chart|Spotify|iTunes|Streaming|Pop|Rock|Hip Hop|Rap" 
+                                    }
+                                    default { $filter = $filterValue }
+                                }
+                                
+                                Write-Verbose "Using entertainment filter: $filter"
+                                $originalCount = $results.Count
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $filter -or 
+                                    $_.description -match $filter
+                                }
+                                
+                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                            }
+                            default {
+                                Write-Verbose "Using generic filter: $filterValue"
+                                $originalCount = $results.Count
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $filterValue -or 
+                                    $_.description -match $filterValue
+                                }
+                                
+                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                            }
+                        }
+                        
+                        if ($results.Count -eq 0) {
+                            Write-Warning "No results found after filtering for subcategory '$filterValue'."
+                            Write-Warning "Try using the main category '$filterType' instead or run with -Verbose for more information."
+                            
+                            $prompt = "Would you like to see the unfiltered results for '$filterType' instead? (Y/N)"
+                            $userInput = Read-Host -Prompt $prompt
+                            
+                            if ($userInput -eq "Y" -or $userInput -eq "y") {
+                                $results = $unfilteredResults
+                                Write-Verbose "Returning all results for main category '$filterType'"
+                            } else {
+                                $results = $null
+                            }
+                        }
+                    }
+                    
+                    $results
+                }
+            } catch {
+                Write-Error "Failed to retrieve news: $_"
+                Write-Warning "API URL used: $url"
+                
+                if ($_.ErrorDetails.Message) {
+                    try {
+                        $errorInfo = $_.ErrorDetails.Message | ConvertFrom-Json
+                        Write-Warning "API Error: $($errorInfo | ConvertTo-Json -Depth 3)"
+                    } catch {
+                        Write-Warning "Error details: $($_.ErrorDetails.Message)"
+                    }
+                }
+            }
         }
     }
 }
@@ -759,9 +1128,7 @@ function Open-BingSearchResult {
     }
 }
 
-
-
 Export-ModuleMember -Function `
     Get-BingSearchResults, 
-    Receive-BingNews,
+    Receive-BingNews,  
     Open-BingSearchResult
