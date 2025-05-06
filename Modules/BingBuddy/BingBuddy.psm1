@@ -630,7 +630,7 @@ function Get-BingSearchResults {
         Invoke-BingSearch `
            -Query $Query `
            -Service $Service `
-           -ApiKey $env:BingSearchApiKey `
+           -ApiKey $ApiKey `
            -ResultsCount $ResultsCount `
            -NSFW $NSFW `
            -Market $marketCode 
