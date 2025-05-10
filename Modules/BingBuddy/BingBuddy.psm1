@@ -365,6 +365,111 @@ function Get-MarketCode {
     }
 }
 
+function Get-LanguageCode {
+    <#
+    .SYNOPSIS
+    Maps a language name to its corresponding Bing API language code.
+
+    .DESCRIPTION
+    This function takes a language name and returns the appropriate language code
+    for use with the Bing API's setLang parameter.
+
+    .PARAMETER Language
+    The language to get the code for.
+
+    .EXAMPLE
+    Get-LanguageCode -Language "English"
+    # Returns "en"
+    
+    .EXAMPLE
+    Get-LanguageCode -Language "Chinese (Simplified)"
+    # Returns "zh-hans"
+
+    .NOTES
+    Reference: https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [ValidateSet(
+            "Arabic", "Basque", "Bengali", "Bulgarian", "Catalan", 
+            "Chinese (Simplified)", "Chinese (Traditional)", "Croatian", "Czech", "Danish",
+            "Dutch", "English", "English-United Kingdom", "Estonian", "Finnish",
+            "French", "Galician", "German", "Gujarati", "Hebrew",
+            "Hindi", "Hungarian", "Icelandic", "Italian", "Japanese",
+            "Kannada", "Korean", "Latvian", "Lithuanian", "Malay",
+            "Malayalam", "Marathi", "Norwegian (Bokmål)", "Polish", 
+            "Portuguese (Brazil)", "Portuguese (Portugal)", "Punjabi", "Romanian", "Russian",
+            "Serbian (Cyrylic)", "Slovak", "Slovenian", "Spanish", "Swedish",
+            "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"
+        )]
+        [string]
+        $Language
+    )
+
+    # Map of language names to language codes
+    $languageMap = @{
+        "Arabic"                = "ar"
+        "Basque"                = "eu"
+        "Bengali"               = "bn"
+        "Bulgarian"             = "bg"
+        "Catalan"               = "ca"
+        "Chinese (Simplified)"  = "zh-hans"
+        "Chinese (Traditional)" = "zh-hant"
+        "Croatian"              = "hr"
+        "Czech"                 = "cs"
+        "Danish"                = "da"
+        "Dutch"                 = "nl"
+        "English"               = "en"
+        "English-United Kingdom" = "en-gb"
+        "Estonian"              = "et"
+        "Finnish"               = "fi"
+        "French"                = "fr"
+        "Galician"              = "gl"
+        "German"                = "de"
+        "Gujarati"              = "gu"
+        "Hebrew"                = "he"
+        "Hindi"                 = "hi"
+        "Hungarian"             = "hu"
+        "Icelandic"             = "is"
+        "Italian"               = "it"
+        "Japanese"              = "jp"
+        "Kannada"               = "kn"
+        "Korean"                = "ko"
+        "Latvian"               = "lv"
+        "Lithuanian"            = "lt"
+        "Malay"                 = "ms"
+        "Malayalam"             = "ml"
+        "Marathi"               = "mr"
+        "Norwegian (Bokmål)"    = "nb"
+        "Polish"                = "pl"
+        "Portuguese (Brazil)"   = "pt-br"
+        "Portuguese (Portugal)" = "pt-pt"
+        "Punjabi"               = "pa"
+        "Romanian"              = "ro"
+        "Russian"               = "ru"
+        "Serbian (Cyrylic)"     = "sr"
+        "Slovak"                = "sk"
+        "Slovenian"             = "sl"
+        "Spanish"               = "es"
+        "Swedish"               = "sv"
+        "Tamil"                 = "ta"
+        "Telugu"                = "te"
+        "Thai"                  = "th"
+        "Turkish"               = "tr"
+        "Ukrainian"             = "uk"
+        "Vietnamese"            = "vi"
+    }
+
+    # Convert the selected language name to its corresponding language code
+    if ($languageMap.ContainsKey($Language)) {
+        return $languageMap[$Language]
+    } else {
+        Write-Verbose "Language '$Language' not found in explicit map, returning input value."
+        return $Language
+    }
+}
+
 function Get-MarketCategoryInfo {
     <#
     .SYNOPSIS
@@ -550,6 +655,11 @@ function Get-BingSearchResults {
     .PARAMETER Market
     The geographic region to which the result data is localized. 
 
+    .PARAMETER Language
+    The language in which to return search results. By default, the function will use the language
+    associated with the selected market. This parameter can be used to override that behavior and
+    request results in a specific language.
+
     .EXAMPLE
     Get-BingSearchResults -Query "PowerShell" -Service "web"
 
@@ -559,6 +669,11 @@ function Get-BingSearchResults {
     Get-BingSearchResults -Query "Cats" -Service "images" -ResultsCount 10 -NSFW
 
     This example performs an image search for the query "Cats", returns 10 unique results, and includes NSFW content.
+
+    .EXAMPLE
+    Get-BingSearchResults -Query "Paris tourism" -Service "Web" -Market "France" -Language "English"
+
+    This example performs a web search for "Paris tourism" in the French market but returns results in English.
 
     .NOTES
     This function requires an active internet connection and a valid Bing Search API key to function.
@@ -617,25 +732,56 @@ function Get-BingSearchResults {
             "Worldwide"
         )]
         [string]
-        $Market = "United States"
+        $Market = "United States",
+        
+        [Parameter()]
+        [ValidateSet(
+            "Arabic", "Basque", "Bengali", "Bulgarian", "Catalan", 
+            "Chinese (Simplified)", "Chinese (Traditional)", "Croatian", "Czech", "Danish",
+            "Dutch", "English", "English-United Kingdom", "Estonian", "Finnish",
+            "French", "Galician", "German", "Gujarati", "Hebrew",
+            "Hindi", "Hungarian", "Icelandic", "Italian", "Japanese",
+            "Kannada", "Korean", "Latvian", "Lithuanian", "Malay",
+            "Malayalam", "Marathi", "Norwegian (Bokmål)", "Polish", 
+            "Portuguese (Brazil)", "Portuguese (Portugal)", "Punjabi", "Romanian", "Russian",
+            "Serbian (Cyrylic)", "Slovak", "Slovenian", "Spanish", "Swedish",
+            "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"
+        )]
+        [string]
+        $Language
     )
 
     begin {
         # Convert the selected country/region name to its corresponding market code
         $marketCode = Get-MarketCode -Market $Market
+        
+        # Convert language name to language code if specified
+        $languageCode = if ($Language) {
+            Get-LanguageCode -Language $Language
+        } else {
+            # Default to no specific language code
+            $null
+        }
     }
   
     process {
         # Call the Invoke-BingSearch function to get raw search results
-        Invoke-BingSearch `
-           -Query $Query `
-           -Service $Service `
-           -ApiKey $ApiKey `
-           -ResultsCount $ResultsCount `
-           -NSFW $NSFW `
-           -Market $marketCode 
-                | 
-                Select-Object * -Unique
+        # Pass the language code if specified
+        $params = @{
+            Query = $Query
+            Service = $Service
+            ApiKey = $ApiKey
+            ResultsCount = $ResultsCount
+            NSFW = $NSFW
+            Market = $marketCode
+        }
+        
+        # Only add the language parameter if it was specified
+        if ($languageCode) {
+            $params.Language = $languageCode
+        }
+        
+        Invoke-BingSearch @params | Select-Object * -Unique
     }
 }
 
@@ -659,6 +805,9 @@ function Receive-BingNews {
 
     .PARAMETER Trending
     A switch to retrieve trending news topics instead of regular news articles.
+    Note: Trending news is only available for specific markets (Canada, France, Germany, United Kingdom,
+    People's Republic of China, and United States). If you specify an unsupported market with this switch,
+    the function will warn you and suggest using a supported market.
     
     .PARAMETER ApiKey
     The API key for authenticating with the Bing News Search API. 
@@ -666,6 +815,16 @@ function Receive-BingNews {
 
     .PARAMETER Market
     The geographic region to which the result data is localized. 
+    Different markets support different features:
+    - For category-based news: Australia, Canada (fr-CA), Chile, Denmark, Finland, France, Germany, 
+      Italy, Mexico, People's Republic of China, Brazil, United Kingdom, United States, Worldwide
+    - For trending news: Canada (en-CA, fr-CA), France, Germany, People's Republic of China, United Kingdom,
+      United States (en-US)
+
+    .PARAMETER Language
+    The language in which to return search results. By default, the function will use the language
+    associated with the selected market. This parameter can be used to override that behavior and
+    request results in a specific language.
 
     .EXAMPLE
     Receive-BingNews -Category "ScienceAndTechnology" -ApiKey "YourApiKey" -Market "United States"
@@ -678,27 +837,32 @@ function Receive-BingNews {
     This example retrieves news specific to the Midwest region of the US using client-side filtering.
 
     .EXAMPLE
-    Receive-BingNews -Trending -ApiKey "YourApiKey" -Market "China"
+    Receive-BingNews -Trending -ApiKey "YourApiKey" -Market "United Kingdom"
 
-    This example retrieves trending news topics for the Chinese market using the specified API key.
+    This example retrieves trending news topics for the UK market using the specified API key.
+
+    .EXAMPLE
+    Receive-BingNews -Market "France" -Language "English"
+
+    This example retrieves news articles from the French market but in English language.
 
     .NOTES
     This function requires an active internet connection and a valid Bing Search API key to function.
     Different markets support different categories. See the Microsoft documentation for details.
 
     .LINK
-    https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/query-parameters#news-categories-by-market
+    https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/market-codes#news-category-api-markets
+    .LINK
+    https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/market-codes#trending-news-api-markets
     #>
     [CmdletBinding()]
     param (
         [Parameter()]
         [ValidateSet(
-            "United States",
-            "United Kingdom",
-            "Canada",
-            "China",
-            "Japan",
-            "India"
+            # Markets that support News Category API
+            "Australia", "Canada", "Chile", "Denmark", "Finland", "France", "Germany", 
+            "Italy", "Mexico", "People's Republic of China", "Brazil", 
+            "United Kingdom", "United States", "Worldwide"
         )]
         [string]
         $Market = "United States",
@@ -706,7 +870,7 @@ function Receive-BingNews {
         [Parameter()]
         [ValidateSet(
             # US categories (offering the most options for tab completion)
-            "Business", "Entertainment", "Health", "Politics", "Products", "ScienceAndTechnology", # Added Products
+            "Business", "Entertainment", "Health", "Politics", "Products", "ScienceAndTechnology", 
             "Sports", "US", "World",
             # Entertainment subcategories
             "Entertainment_MovieAndTV", "Entertainment_Music",
@@ -729,12 +893,65 @@ function Receive-BingNews {
 
         [Parameter()]
         [string]
-        $ApiKey = $env:BingSearchApiKey
+        $ApiKey = $env:BingSearchApiKey,
+
+        [Parameter()]
+        [ValidateSet(
+            "Arabic", "Basque", "Bengali", "Bulgarian", "Catalan", 
+            "Chinese (Simplified)", "Chinese (Traditional)", "Croatian", "Czech", "Danish",
+            "Dutch", "English", "English-United Kingdom", "Estonian", "Finnish",
+            "French", "Galician", "German", "Gujarati", "Hebrew",
+            "Hindi", "Hungarian", "Icelandic", "Italian", "Japanese",
+            "Kannada", "Korean", "Latvian", "Lithuanian", "Malay",
+            "Malayalam", "Marathi", "Norwegian (Bokmål)", "Polish", 
+            "Portuguese (Brazil)", "Portuguese (Portugal)", "Punjabi", "Romanian", "Russian",
+            "Serbian (Cyrylic)", "Slovak", "Slovenian", "Spanish", "Swedish",
+            "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"
+        )]
+        [string]
+        $Language
     )
 
     begin {
         # Convert the selected country/region name to its corresponding market code
         $marketCode = Get-MarketCode -Market $Market
+        
+        # Convert language name to language code if specified
+        $languageCode = if ($Language) {
+            Get-LanguageCode -Language $Language
+        } else {
+            # Default to no specific language code
+            $null
+        }
+        
+        # Define markets that support trending news
+        # According to https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/market-codes#trending-news-api-markets
+        $trendingSupportedMarkets = @(
+            "Canada",
+            "France",
+            "Germany", 
+            "People's Republic of China",
+            "United Kingdom", 
+            "United States"
+        )
+        
+        # Check if Trending is requested but not supported in the selected market
+        if ($Trending -and $trendingSupportedMarkets -notcontains $Market) {
+            Write-Warning "Trending news is not supported for the market '$Market'."
+            Write-Warning "Supported markets for trending news are: $($trendingSupportedMarkets -join ', ')"
+            
+            $prompt = "Would you like to use 'United States' market for trending news instead? (Y/N)"
+            $response = Read-Host -Prompt $prompt
+            
+            if ($response -eq "Y" -or $response -eq "y") {
+                Write-Verbose "Using 'United States' market for trending news."
+                $Market = "United States"
+                $marketCode = Get-MarketCode -Market $Market
+            }
+            else {
+                Write-Error "Cannot proceed with trending news for market '$Market'. Please select a supported market." -ErrorAction Stop
+            }
+        }
         
         # If a category is specified, validate it against the market's supported categories
         if ($Category) {
@@ -772,10 +989,49 @@ function Receive-BingNews {
     }
 
     process {
-        if($Trending){
-            Receive-BingNewsTrendingTopics -ApiKey $ApiKey -Market $marketCode
+        if ($Trending) {
+            # Validate API Key. Exit program if found not to be valid.
+            if (-not $ApiKey) {
+                Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
+            }
+
+            # Create the headers hash using the API key
+            $headers = @{
+                "Ocp-Apim-Subscription-Key" = $ApiKey
+            }
+
+            # Set the endpoint URL
+            $url = "https://api.bing.microsoft.com/v7.0/news/trendingtopics?mkt=$marketCode"
+            
+            # Add language parameter if specified
+            if ($languageCode) {
+                $url += "&setLang=$languageCode"
+                Write-Verbose "Using language: $Language ($languageCode) for trending news"
+            }
+            
+            Write-Verbose "API URL: $url"
+
+            # Make the API call
+            try {
+                $response = Invoke-RestMethod -Uri $url -Headers $headers -Method 'GET'
+                
+                # Return the trending topics
+                return $response.value
+            } catch {
+                Write-Error "Failed to retrieve trending news: $_"
+                Write-Warning "API URL used: $url"
+                
+                if ($_.ErrorDetails.Message) {
+                    try {
+                        $errorInfo = $_.ErrorDetails.Message | ConvertFrom-Json
+                        Write-Warning "API Error: $($errorInfo | ConvertTo-Json -Depth 3)"
+                    } catch {
+                        Write-Warning "Error details: $($_.ErrorDetails.Message)"
+                    }
+                }
+            }
         }
-        else{
+        else {
             # Validate API Key. Exit program if found not to be valid.
             if (-not $ApiKey) {
                 Write-Error "You need to provide a valid Bing Search API key." -ErrorAction Stop
@@ -819,12 +1075,16 @@ function Receive-BingNews {
             }
 
             # Construct market parameter to the URL
-            $marketParam = $url.Length -gt $baseUrl.Length ? "&mkt=$marketCode" : "?mkt=$marketCode"
+            $urlQueryChar = if ($url.Length -gt $baseUrl.Length) { "&" } else { "?" }
+            $url += "$urlQueryChar" + "mkt=$marketCode"
+            
+            # Add language parameter if specified
+            if ($languageCode) {
+                $url += "&setLang=$languageCode"
+                Write-Verbose "Using language: $Language ($languageCode) for news results"
+            }
 
-            # Add market parameter to the URL
-            $url += $marketParam
-
-            Write-Verbose "`nurl: $url"
+            Write-Verbose "API URL: $url"
 
             # Make the API call
             try {
@@ -833,6 +1093,9 @@ function Receive-BingNews {
                 # Check if we have any results
                 if ($null -eq $apiResponse.value -or $apiResponse.value.Count -eq 0) {
                     Write-Warning "No results found for category '$Category' in market '$Market' ($marketCode)."
+                    if ($languageCode) {
+                        Write-Warning "You specified language '$Language'. Try a different language or remove the language constraint."
+                    }
                 } else {
                     # Store unfiltered results first
                     $unfilteredResults = $apiResponse.value
@@ -876,90 +1139,99 @@ function Receive-BingNews {
                                 Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
                             }
                             "Sports" {
-                                $enhancedFilter = switch ($filterValue) {
-                                    "Golf" { "Golf|PGA|Masters|US Open|British Open|Open Championship|golfer" }
-                                    "MLB" { "MLB|Baseball|Major League Baseball|Yankees|Red Sox|Dodgers|Astros" }
-                                    "NBA" { "NBA|Basketball|Lakers|Celtics|Bulls|Warriors|Lebron|Jordan|Knicks|Clippers|Nuggets|Heat|Bucks|Suns|76ers|Mavericks|Nets" }
-                                    "NFL" { "NFL|Football|Cowboys|Patriots|Chiefs|Eagles|Quarterback|TD|Super Bowl" }
-                                    "NHL" { "NHL|Hockey|Stanley Cup|Bruins|Rangers|Maple Leafs|Oilers|Penguins" }
-                                    "Soccer" { "Soccer|Football|FIFA|Premier League|La Liga|MLS|Champions League|World Cup|Manchester|Barcelona|Real Madrid" }
-                                    "Tennis" { "Tennis|Wimbledon|US Open|French Open|Australian Open|Grand Slam" }
-                                    "CFB" { "College Football|NCAA|CFB|Alabama|Ohio State|Michigan|Clemson|Georgia" }
-                                    "CBB" { "College Basketball|NCAA|March Madness|Duke|Kentucky|Kansas|North Carolina" }
-                                    default { $filterValue }
+                                Write-Verbose "Filtering for sports subcategory: $filterValue"
+                                
+                                # Sports subcategory filtering
+                                $sportMap = @{
+                                    "Golf" = "golf|PGA|LPGA|Masters|US Open|British Open|The Open Championship"
+                                    "MLB" = "MLB|baseball|pitcher|batter|inning|home run|Major League Baseball"
+                                    "NBA" = "NBA|basketball|court|dunk|three-pointer|National Basketball Association"
+                                    "NFL" = "NFL|football|touchdown|quarterback|field goal|National Football League"
+                                    "NHL" = "NHL|hockey|ice hockey|puck|goal|National Hockey League"
+                                    "Soccer" = "soccer|football|FIFA|Premier League|La Liga|Bundesliga|Serie A|goal|match|championship"
+                                    "Tennis" = "tennis|racket|court|serve|Grand Slam|ATP|WTA|US Open|Wimbledon|French Open|Australian Open"
+                                    "CFB" = "college football|NCAA football|CFB|university football"
+                                    "CBB" = "college basketball|NCAA basketball|university basketball|March Madness"
                                 }
                                 
-                                Write-Verbose "Using sports filter: $enhancedFilter"
-                                $originalCount = $results.Count
+                                if ($sportMap.ContainsKey($filterValue)) {
+                                    $filter = $sportMap[$filterValue]
+                                } else {
+                                    $filter = $filterValue
+                                }
                                 
                                 $results = $results | Where-Object { 
-                                    $_.name -match $enhancedFilter -or 
-                                    $_.description -match $enhancedFilter
+                                    $_.name -match $filter -or 
+                                    $_.description -match $filter
                                 }
-                                
-                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
                             }
                             "World" {
-                                switch ($filterValue) {
-                                    "Africa" { 
-                                        $filter = "Africa|Nigeria|Kenya|South Africa|Egypt|Ethiopia|Ghana|Morocco|Algeria|Tunisia|Libya|Sudan|Zimbabwe|Uganda|Tanzania" 
-                                    }
-                                    "Americas" { 
-                                        $filter = "Canada|Mexico|Brazil|Argentina|Latin America|South America|Colombia|Peru|Chile|Cuba|Venezuela|Caribbean|Panama" 
-                                    }
-                                    "Asia" { 
-                                        $filter = "China|Japan|India|Korea|Asia|Taiwan|Philippines|Indonesia|Vietnam|Thailand|Singapore|Malaysia|Pakistan|Bangladesh" 
-                                    }
-                                    "Europe" { 
-                                        $filter = "Europe|UK|France|Germany|Italy|Spain|Russia|England|Scotland|Ireland|Poland|Ukraine|Greece|Sweden|Norway|Finland|Denmark|Switzerland|Austria|Netherlands|Belgium" 
-                                    }
-                                    "MiddleEast" { 
-                                        $filter = "Middle East|Israel|Iran|Saudi|UAE|Syria|Iraq|Turkey|Qatar|Dubai|Lebanon|Jordan|Yemen|Oman|Kuwait|Bahrain" 
-                                    }
-                                    default { $filter = $filterValue }
+                                Write-Verbose "Filtering for world region: $filterValue"
+                                
+                                # World region filtering
+                                $regionMap = @{
+                                    "Africa" = "Africa|African|Nigeria|Kenya|South Africa|Egypt|Ethiopia|Ghana|Morocco|Algeria|Tunisia|Libya|Sudan"
+                                    "Americas" = "Latin America|South America|Central America|Caribbean|Brazil|Mexico|Argentina|Colombia|Peru|Venezuela|Chile|Cuba|Haiti"
+                                    "Asia" = "Asia|Asian|China|Japan|India|South Korea|Indonesia|Pakistan|Bangladesh|Vietnam|Thailand|Malaysia|Singapore|Philippines"
+                                    "Europe" = "Europe|European|UK|Germany|France|Italy|Spain|Russia|Poland|Ukraine|Netherlands|Belgium|Sweden|Norway|Finland|Denmark"
+                                    "MiddleEast" = "Middle East|Iran|Iraq|Saudi Arabia|Turkey|Israel|Syria|UAE|Qatar|Kuwait|Lebanon|Jordan|Yemen|Oman|Bahrain"
                                 }
                                 
-                                Write-Verbose "Using world region filter: $filter"
-                                $originalCount = $results.Count
+                                if ($regionMap.ContainsKey($filterValue)) {
+                                    $filter = $regionMap[$filterValue]
+                                } else {
+                                    $filter = $filterValue
+                                }
                                 
                                 $results = $results | Where-Object { 
                                     $_.name -match $filter -or 
                                     $_.description -match $filter
                                 }
-                                
-                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
                             }
                             "Entertainment" {
-                                switch ($filterValue) {
-                                    "MovieAndTV" { 
-                                        $filter = "Movie|Film|Cinema|Hollywood|TV|Television|Series|Show|Actor|Actress|Director|Netflix|Hulu|HBO|Disney\+|Amazon Prime|Streaming" 
-                                    }
-                                    "Music" { 
-                                        $filter = "Music|Song|Album|Concert|Tour|Singer|Artist|Band|Grammy|Billboard|Chart|Spotify|iTunes|Streaming|Pop|Rock|Hip Hop|Rap" 
-                                    }
-                                    default { $filter = $filterValue }
+                                Write-Verbose "Filtering for entertainment subcategory: $filterValue"
+                                
+                                $entertainmentMap = @{
+                                    "MovieAndTV" = "movie|film|cinema|TV|television|series|show|actor|actress|director|Hollywood|Netflix|HBO|Disney|streaming"
+                                    "Music" = "music|song|album|artist|band|concert|tour|singer|rapper|musician|Grammy|Billboard|Spotify|iTunes"
                                 }
                                 
-                                Write-Verbose "Using entertainment filter: $filter"
-                                $originalCount = $results.Count
+                                if ($entertainmentMap.ContainsKey($filterValue)) {
+                                    $filter = $entertainmentMap[$filterValue]
+                                } else {
+                                    $filter = $filterValue
+                                }
                                 
                                 $results = $results | Where-Object { 
                                     $_.name -match $filter -or 
                                     $_.description -match $filter
                                 }
+                            }
+                            "ScienceAndTechnology" {
+                                Write-Verbose "Filtering for science/tech subcategory: $filterValue"
                                 
-                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
+                                $sciTechMap = @{
+                                    "Technology" = "technology|tech|software|hardware|app|smartphone|computer|AI|artificial intelligence|robot|automation|internet|digital|cyber|mobile"
+                                    "Science" = "science|scientific|research|study|discovery|physics|chemistry|biology|astronomy|space|NASA|experiment|theory|quantum|molecule|climate"
+                                }
+                                
+                                if ($sciTechMap.ContainsKey($filterValue)) {
+                                    $filter = $sciTechMap[$filterValue]
+                                } else {
+                                    $filter = $filterValue
+                                }
+                                
+                                $results = $results | Where-Object { 
+                                    $_.name -match $filter -or 
+                                    $_.description -match $filter
+                                }
                             }
                             default {
-                                Write-Verbose "Using generic filter: $filterValue"
-                                $originalCount = $results.Count
-                                
+                                Write-Warning "Unknown filter type: $filterType, using simple text matching"
                                 $results = $results | Where-Object { 
                                     $_.name -match $filterValue -or 
                                     $_.description -match $filterValue
                                 }
-                                
-                                Write-Verbose "Filtered from $originalCount results to $($results.Count) results"
                             }
                         }
                         
@@ -997,7 +1269,6 @@ function Receive-BingNews {
         }
     }
 }
-
 
 function Open-BingSearchResult {
     <#
