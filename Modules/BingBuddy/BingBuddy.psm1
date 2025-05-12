@@ -65,6 +65,14 @@ function Invoke-BingSearch {
     .PARAMETER Market
     The geographic region to which the result data is localized. 
 
+    .PARAMETER Language
+    Specifies the preferred language for the API's response messages (e.g., errors, metadata) and can influence the language of the user interface elements if the API provides them.
+    **Important Note:** This parameter does **not** translate the actual news articles. The language of the news articles
+    is primarily determined by the selected `-Market`. While you can specify a language here, news articles
+    will likely be in the primary language(s) of the chosen market. For example, if you choose `-Market Canada`
+    and `-Language "Chinese (Simplified)"`, you will likely still receive news in English or French, but any
+    API-level messages (like errors) might be in Chinese if supported by the API for that language.
+
     .EXAMPLE
     Get-BingSearchResults -Query "PowerShell" -Service "web"
 
@@ -113,10 +121,41 @@ function Invoke-BingSearch {
 
         [Parameter()]
         [string]
-        $Market = "en-US"
+        $Market = "en-US",
+
+        [Parameter()]
+        [ValidateSet(
+            "Arabic", "Basque", "Bengali", "Bulgarian", "Catalan", 
+            "Chinese (Simplified)", "Chinese (Traditional)", "Croatian", "Czech", "Danish",
+            "Dutch", "English", "English-United Kingdom", "Estonian", "Finnish",
+            "French", "Galician", "German", "Gujarati", "Hebrew",
+            "Hindi", "Hungarian", "Icelandic", "Italian", "Japanese",
+            "Kannada", "Korean", "Latvian", "Lithuanian", "Malay",
+            "Malayalam", "Marathi", "Norwegian (Bokmål)", "Polish", 
+            "Portuguese (Brazil)", "Portuguese (Portugal)", "Punjabi", "Romanian", "Russian",
+            "Serbian (Cyrylic)", "Slovak", "Slovenian", "Spanish", "Swedish",
+            "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Vietnamese"
+        )]
+        [string]
+        $Language
     )
 
     begin {
+
+        # Convert the selected country/region name to its corresponding market code
+        $marketCode = Get-MarketCode -Market $Market
+        
+        # Convert language name to language code if specified
+        $languageCode = if ($Language) {
+            Get-LanguageCode -Language $Language
+        } else {
+            # Default to no specific language code
+            $null
+        }
+
+        if ($Language) {
+            Write-Warning "The -Language parameter primarily affects API response localization (e.g., error messages and UI strings from the API). News articles will still be predominantly in the language of the selected -Market ('$Market')."
+        }
 
         # Helper function to add the Service property to each result object
         function Add-ServiceProperty {
@@ -656,9 +695,12 @@ function Get-BingSearchResults {
     The geographic region to which the result data is localized. 
 
     .PARAMETER Language
-    The language in which to return search results. By default, the function will use the language
-    associated with the selected market. This parameter can be used to override that behavior and
-    request results in a specific language.
+    Specifies the preferred language for the API's response messages (e.g., errors, metadata) and can influence the language of the user interface elements if the API provides them.
+    **Important Note:** This parameter does **not** translate the actual news articles. The language of the news articles
+    is primarily determined by the selected `-Market`. While you can specify a language here, news articles
+    will likely be in the primary language(s) of the chosen market. For example, if you choose `-Market Canada`
+    and `-Language "Chinese (Simplified)"`, you will likely still receive news in English or French, but any
+    API-level messages (like errors) might be in Chinese if supported by the API for that language.
 
     .EXAMPLE
     Get-BingSearchResults -Query "PowerShell" -Service "web"
@@ -762,6 +804,10 @@ function Get-BingSearchResults {
             # Default to no specific language code
             $null
         }
+
+        if ($Language) {
+            Write-Warning "The -Language parameter primarily affects API response localization (e.g., error messages and UI strings from the API). News articles will still be predominantly in the language of the selected -Market ('$Market')."
+        }
     }
   
     process {
@@ -816,15 +862,17 @@ function Receive-BingNews {
     .PARAMETER Market
     The geographic region to which the result data is localized. 
     Different markets support different features:
-    - For category-based news: Australia, Canada (fr-CA), Chile, Denmark, Finland, France, Germany, 
-      Italy, Mexico, People's Republic of China, Brazil, United Kingdom, United States, Worldwide
+    - For category-based news: Australia, Canada, China, India, Japan, United Kingdom, United States
     - For trending news: Canada (en-CA, fr-CA), France, Germany, People's Republic of China, United Kingdom,
       United States (en-US)
 
     .PARAMETER Language
-    The language in which to return search results. By default, the function will use the language
-    associated with the selected market. This parameter can be used to override that behavior and
-    request results in a specific language.
+    Specifies the preferred language for the API's response messages (e.g., errors, metadata) and can influence the language of the user interface elements if the API provides them.
+    **Important Note:** This parameter does **not** translate the actual news articles. The language of the news articles
+    is primarily determined by the selected `-Market`. While you can specify a language here, news articles
+    will likely be in the primary language(s) of the chosen market. For example, if you choose `-Market Canada`
+    and `-Language "Chinese (Simplified)"`, you will likely still receive news in English or French, but any
+    API-level messages (like errors) might be in Chinese if supported by the API for that language.
 
     .EXAMPLE
     Receive-BingNews -Category "ScienceAndTechnology" -ApiKey "YourApiKey" -Market "United States"
@@ -859,31 +907,19 @@ function Receive-BingNews {
     param (
         [Parameter()]
         [ValidateSet(
-            # Markets that support News Category API
-            "Australia", "Canada", "Chile", "Denmark", "Finland", "France", "Germany", 
-            "Italy", "Mexico", "People's Republic of China", "Brazil", 
-            "United Kingdom", "United States", "Worldwide"
+            # Markets that support the News Category API parameter
+            "Australia",        # en-AU
+            "Canada",           # en-CA
+            "China",            # zh-CN
+            "India",            # en-IN
+            "Japan",            # ja-JP
+            "United Kingdom",   # en-GB
+            "United States"     # en-US
         )]
         [string]
         $Market = "United States",
         
         [Parameter()]
-        [ValidateSet(
-            # US categories (offering the most options for tab completion)
-            "Business", "Entertainment", "Health", "Politics", "Products", "ScienceAndTechnology", 
-            "Sports", "US", "World",
-            # Entertainment subcategories
-            "Entertainment_MovieAndTV", "Entertainment_Music",
-            # ScienceAndTechnology subcategories  
-            "Technology", "Science",
-            # Sports subcategories for the US
-            "Sports_Golf", "Sports_MLB", "Sports_NBA", "Sports_NFL", "Sports_NHL", 
-            "Sports_Soccer", "Sports_Tennis", "Sports_CFB", "Sports_CBB",
-            # US regional subcategories
-            "US_Northeast", "US_South", "US_Midwest", "US_West",
-            # World subcategories
-            "World_Africa", "World_Americas", "World_Asia", "World_Europe", "World_MiddleEast"
-        )]
         [string]
         $Category,
         
@@ -923,6 +959,10 @@ function Receive-BingNews {
             # Default to no specific language code
             $null
         }
+
+        if ($PSBoundParameters.ContainsKey('Language')) {
+            Write-Warning "The -Language parameter primarily affects API response localization (e.g., error messages) and does not translate news article content. News articles will predominantly be in the language of the selected -Market ('$Market')."
+        }
         
         # Define markets that support trending news
         # According to https://learn.microsoft.com/en-us/bing/search-apis/bing-news-search/reference/market-codes#trending-news-api-markets
@@ -960,10 +1000,11 @@ function Receive-BingNews {
             
             if (-not $isValidCategory) {
                 # Get list of valid categories for this market for the error message
-                $validCategories = $marketInfo.Categories -join ", "
+                $validCategories = $marketInfo.Categories
+                $validCategoriesString = $validCategories -join ", "
                 
                 Write-Warning "Category '$Category' is not supported for the market '$Market' ($marketCode)."
-                Write-Warning "Valid categories for this market are: $validCategories"
+                Write-Warning "Valid categories for this market are: $validCategoriesString"
                 
                 # If subcategories exist, provide that information too
                 if ($marketInfo.ContainsKey("Subcategories")) {
@@ -973,16 +1014,36 @@ function Receive-BingNews {
                     }
                 }
                 
-                # Offer to use a default category instead
-                $defaultCategory = $marketInfo.Categories[0]
-                $prompt = "Would you like to use '$defaultCategory' instead? (Y/N)"
-                $response = Read-Host -Prompt $prompt
+                # Offer to use a category from a console menu
+                Write-Host "Please select a valid category from the list below:"
+                for ($i = 0; $i -lt $validCategories.Count; $i++) {
+                    Write-Host ("[{0}] {1}" -f ($i + 1), $validCategories[$i])
+                }
+
+                $userChoiceIndex = -1 
+                while ($true) {
+                    $choiceInput = Read-Host -Prompt "Enter the number of your choice (or type 'exit' to cancel)"
+                    if ($choiceInput -eq 'exit') {
+                        Write-Error "Category selection cancelled by user." -ErrorAction Stop
+                        return 
+                    }
+                    if ($choiceInput -match '^\d+$') {
+                        $selectedNumber = [int]$choiceInput
+                        if ($selectedNumber -ge 1 -and $selectedNumber -le $validCategories.Count) {
+                            $userChoiceIndex = $selectedNumber - 1
+                            break
+                        } else {
+                            Write-Warning ("Invalid selection. Please enter a number between 1 and {0}." -f $validCategories.Count)
+                        }
+                    } else {
+                        Write-Warning "Invalid input. Please enter a number (e.g., 1, 2, ...)."
+                    }
+                }
                 
-                if ($response -eq "Y" -or $response -eq "y") {
-                    Write-Verbose "Using default category '$defaultCategory' instead."
-                    $Category = $defaultCategory
-                } else {
-                    Write-Error "Please specify a valid category for the selected market." -ErrorAction Stop
+                if ($userChoiceIndex -ne -1) {
+                    $selectedCategory = $validCategories[$userChoiceIndex]
+                    Write-Verbose "Using selected category '$selectedCategory' instead."
+                    $Category = $selectedCategory
                 }
             }
         }
