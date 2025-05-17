@@ -349,27 +349,7 @@ function Receive-BingNewsTrendingTopics {
 
 
 function Get-MarketCode {
-    param (
-        [Parameter(Mandatory)]
-        [ValidateSet(
-            "United States",
-            "United Kingdom",
-            "Canada",
-            "Australia",
-            "France",
-            "Germany",
-            "Spain",
-            "Italy",
-            "Brazil",
-            "Mexico",
-            "India",
-            "China",
-            "Japan",
-            "Russia",
-            "Finland",
-            "Denmark",
-            "Worldwide"
-        )]
+    param (        [Parameter(Mandatory)]
         [string]
         $Market
     )
@@ -754,25 +734,7 @@ function Get-BingSearchResults {
         $NSFW,
 
         [Parameter()]
-        [ValidateSet(
-            "United States",
-            "United Kingdom",
-            "Canada",
-            "Australia",
-            "France",
-            "Germany",
-            "Spain",
-            "Italy",
-            "Brazil",
-            "Mexico",
-            "India",
-            "China",
-            "Japan",
-            "Russia",
-            "Finland",
-            "Denmark",
-            "Worldwide"
-        )]
+
         [string]
         $Market = "United States",
         
@@ -1389,7 +1351,7 @@ function Open-BingSearchResult {
     )
         
     begin {
-        
+        $SearchResult
         # Define a hashtable mapping the service types to their URL properties
         $urlPropertyMap = @{
             "Web"          = 'url';
@@ -1425,34 +1387,67 @@ function Open-BingSearchResult {
 
         else{
 
-            # Otherwise,
-            # Assess wether or not the SearchResult is a Trending Topic,
-            # then open the result accordingly
-            switch ($Source) {
+            # Expanded list of possible URL properties in priority order
+            $possibleUrlProps = @(
+                'webSearchUrl',
+                'newsSearchUrl',
+                'url',
+                'hostPageUrl',
+                'contentUrl'
+            )
+            $descriptions = @{
+                'webSearchUrl'  = 'Web search page for this result'
+                'newsSearchUrl' = 'News article page'
+                'url'           = 'Official site or main URL'
+                'hostPageUrl'   = 'Host page for image or media'
+                'contentUrl'    = 'Direct content (image/video) URL'
+            }
 
-                Web   { Start-Process $SearchResult.webSearchUrl  }
-                News  { Start-Process $SearchResult.newsSearchUrl }
+            # Find all present and non-empty URL properties
+            $availableChoices = $possibleUrlProps | Where-Object {
+                $SearchResult.PSObject.Properties.Name -contains $_ -and $SearchResult.$_ -and $SearchResult.$_ -is [string] -and $SearchResult.$_.Length -gt 0
+            }
 
-                Default        {
+            if ($availableChoices.Count -eq 0) {
+                Write-Error "No URL properties found in the search result."
+                return
+            }
+            if ($availableChoices.Count -eq 1) {
+                Start-Process $SearchResult.$($availableChoices[0])
+                return
+            }
 
-                    if ($SearchResult.PSObject.Properties.Name -ccontains "url") {
-                        Start-Process $SearchResult.url   
-                    } 
-                    else {
+            # Display choices with description
+            Write-Host "Select which URL to open:"
+            for ($i = 0; $i -lt $availableChoices.Count; $i++) {
+                $choice = $availableChoices[$i]
+                $desc = if ($descriptions.ContainsKey($choice)) { $descriptions[$choice] } else { $choice }
+                Write-Host ("[{0}] {1}: {2}" -f ($i + 1), $desc, $SearchResult.$choice)
+            }
 
-                        $choices = @("webSearchUrl", "newsSearchUrl")
-                        Write-Host "A Source Selection Menu has been launched, please check your taskbar for a PowerShell icon."
-
-                        $selection = $choices | Out-GridView -Title "Which Source do you want to check?" -PassThru
-                        Start-Process $SearchResult.$selection           
-                    }  
-                    
+            $userChoiceIndex = -1
+            while ($userChoiceIndex -lt 0) {
+                $choiceInput = Read-Host -Prompt "Enter number (or press Enter to cancel)"
+                if ([string]::IsNullOrWhiteSpace($choiceInput)) { return }
+                if ($choiceInput -match '^[0-9]+$') {
+                    $selectedNumber = [int]$choiceInput
+                    if ($selectedNumber -ge 1 -and $selectedNumber -le $availableChoices.Count) {
+                        $userChoiceIndex = $selectedNumber - 1
+                    } else {
+                        Write-Warning ("Invalid selection. Please enter a number between 1 and {0}" -f $availableChoices.Count)
+                    }
+                } else {
+                    Write-Warning "Invalid input. Please enter a number."
                 }
-            }           
+            }
+            $selection = $availableChoices[$userChoiceIndex]
+            Start-Process $SearchResult.$selection
         }
-
     }
 }
+
+# Load argument completers
+. "$PSScriptRoot\BingBuddy.ArgumentCompleters.ps1"
 
 Export-ModuleMember -Function `
     Get-BingSearchResults, 
